@@ -7,15 +7,21 @@ import {
   EyeOff,
   ArrowRight,
   CheckCircle,
-  FileText
+  FileText,
+  AlertCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const AuthPage = () => {
   const navigate = useNavigate();
+  const { login, signup, resetPassword } = useAuth();
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -31,20 +37,71 @@ const AuthPage = () => {
     }));
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement login logic
-    console.log('Login attempt:', { email: formData.email, password: formData.password });
-    // For now, navigate to documents page
-    navigate('/documents');
+    setError('');
+    setLoading(true);
+    
+    try {
+      await login(formData.email, formData.password);
+      navigate('/documents');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sign in';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement registration logic
-    console.log('Registration attempt:', formData);
-    // For now, navigate to documents page
-    navigate('/documents');
+    setError('');
+    
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    
+    if (!formData.agreeToTerms) {
+      setError('Please agree to the terms and conditions');
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      await signup(formData.email, formData.password, formData.name);
+      setSuccess('Account created successfully! Please check your email for verification.');
+      setTimeout(() => {
+        setActiveTab('login');
+        setSuccess('');
+      }, 3000);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create account';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!formData.email) {
+      setError('Please enter your email address first');
+      return;
+    }
+    
+    setError('');
+    setLoading(true);
+    
+    try {
+      await resetPassword(formData.email);
+      setSuccess('Password reset email sent! Check your inbox.');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send reset email';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -59,10 +116,25 @@ const AuthPage = () => {
           <p className="text-gray-600">Sign in to your account or create a new one</p>
         </div>
 
-        {/* Auth Container */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          {/* Tab Navigation */}
-          <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
+                  {/* Auth Container */}
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            {/* Error and Success Messages */}
+            {error && (
+              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-center space-x-2">
+                <AlertCircle className="w-5 h-5" />
+                <span className="text-sm">{error}</span>
+              </div>
+            )}
+            
+            {success && (
+              <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-center space-x-2">
+                <CheckCircle className="w-5 h-5" />
+                <span className="text-sm">{success}</span>
+              </div>
+            )}
+
+            {/* Tab Navigation */}
+            <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
             <button
               onClick={() => setActiveTab('login')}
               className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
@@ -137,7 +209,9 @@ const AuthPage = () => {
               <div className="text-right">
                 <button
                   type="button"
-                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  onClick={handleForgotPassword}
+                  disabled={loading}
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Forgot password?
                 </button>
@@ -146,10 +220,20 @@ const AuthPage = () => {
               {/* Login Button */}
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center space-x-2"
+                disabled={loading}
+                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span>Sign In</span>
-                <ArrowRight className="w-4 h-4" />
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Signing In...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Sign In</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </button>
 
               {/* Switch to Register */}
@@ -289,10 +373,20 @@ const AuthPage = () => {
               {/* Register Button */}
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center space-x-2"
+                disabled={loading}
+                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span>Create Account</span>
-                <CheckCircle className="w-4 h-4" />
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Creating Account...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Create Account</span>
+                    <CheckCircle className="w-4 h-4" />
+                  </>
+                )}
               </button>
 
               {/* Switch to Login */}

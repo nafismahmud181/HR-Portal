@@ -1,12 +1,25 @@
 import { FileText, Pen, Settings, HelpCircle, User, LogOut } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import React from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface SideNavbarProps {
   currentPage: string;
 }
 
 const SideNavbar = ({ currentPage }: SideNavbarProps) => {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Failed to log out:', error);
+    }
+  };
+
   const navItems = [
     {
       id: 'documents',
@@ -117,6 +130,7 @@ const SideNavbar = ({ currentPage }: SideNavbarProps) => {
           
           {/* Logout */}
           <button 
+            onClick={handleLogout}
             className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-red-50 hover:text-red-700 transition-all duration-200"
             title="Logout"
           >

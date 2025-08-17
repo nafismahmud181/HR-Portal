@@ -4,22 +4,38 @@ import DocumentSelectionPage from './components/DocumentSelectionPage';
 import TemplateShowcasePage from './components/TemplateShowcasePage';
 import HRPortal from './components/HRPortal';
 import AuthPage from './components/AuthPage';
+import ProtectedRoute from './components/ProtectedRoute';
+import { AuthProvider } from './contexts/AuthContext';
 import './App.css';
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/documents" element={<DocumentSelectionPage />} />
-          <Route path="/templates" element={<TemplateShowcasePage />} />
-          <Route path="/portal" element={<HRPortal />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/documents" element={
+              <ProtectedRoute>
+                <DocumentSelectionPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/templates" element={
+              <ProtectedRoute>
+                <TemplateShowcasePage />
+              </ProtectedRoute>
+            } />
+            <Route path="/portal" element={
+              <ProtectedRoute>
+                <HRPortal />
+              </ProtectedRoute>
+            } />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 
