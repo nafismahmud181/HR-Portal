@@ -607,11 +607,11 @@ ${formData.contactEmail}`;
                         
                         {activeTemplate === 'experience' && (
                           <div>
-                            <div className="text-center mb-6">
+                            <div className="text-left mb-6">
                               <h1 className="text-xl font-bold mb-2">TO WHOM IT MAY CONCERN</h1>
                             </div>
                             
-                            <div className="mb-4">
+                            <div className="mb-4 text-left">
                               <p className="mb-4">
                                 This is to certify that {formData.employeeName ? `Mr./Ms. ${formData.employeeName}` : '[Employee Name]'} has been working with {formData.companyName} as {formData.position} since {formData.joiningDate ? formatDate(formData.joiningDate) : '[Joining Date]'}.
                               </p>
@@ -625,13 +625,13 @@ ${formData.contactEmail}`;
                               </p>
                             </div>
                             
-                            <div className="mt-8">
+                            <div className="mt-8 text-left">
                               {formData.signatureImage && (
-                                <div className="text-center mb-4">
+                                <div className="text-left mb-4">
                                   <img 
                                     src={formData.signatureImage} 
                                     alt="Signature" 
-                                    className="max-w-32 h-auto mx-auto"
+                                    className="max-w-32 h-auto"
                                   />
                                 </div>
                               )}
@@ -644,17 +644,15 @@ ${formData.contactEmail}`;
                         
                         {activeTemplate === 'salary' && (
                           <div>
-                            <div className="text-center mb-6">
+                            <div className="text-left mb-6">
                               <h1 className="text-xl font-bold mb-2">SALARY CERTIFICATE</h1>
                             </div>
                             
-                            <div className="mb-4">
+                            <div className="mb-4 text-left">
                               <p className="mb-4">
                                 This is to certify that {formData.employeeName ? `Mr./Ms. ${formData.employeeName}` : '[Employee Name]'} is currently employed with {formData.companyName} as {formData.position}.
-                              </p>
-                              
-                              <p className="mb-4">
-                                {formData.employeeName ? 'His/Her' : 'Their'} current monthly salary is {formData.currency} {formData.salary || '[Salary Amount]'}.
+
+                                {formData.employeeName ? 'His/Her' : ' Their'} current monthly salary is {formData.currency} {formData.salary || '[Salary Amount]'}.
                               </p>
                               
                               <p className="mb-4">
@@ -662,13 +660,13 @@ ${formData.contactEmail}`;
                               </p>
                             </div>
                             
-                            <div className="mt-8">
+                            <div className="mt-8 text-left">
                               {formData.signatureImage && (
-                                <div className="text-center mb-4">
+                                <div className="text-left mb-4">
                                   <img 
                                     src={formData.signatureImage} 
                                     alt="Signature" 
-                                    className="max-w-32 h-auto mx-auto"
+                                    className="max-w-32 h-auto"
                                   />
                                 </div>
                               )}
