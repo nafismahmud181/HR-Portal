@@ -3,6 +3,7 @@ import LandingPage from './components/LandingPage';
 import DocumentSelectionPage from './components/DocumentSelectionPage';
 import TemplateShowcasePage from './components/TemplateShowcasePage';
 import HRPortal from './components/HRPortal';
+import AuthPage from './components/AuthPage';
 import './App.css';
 
 function App() {
@@ -11,6 +12,7 @@ function App() {
       <div className="App">
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/auth" element={<AuthPage />} />
           <Route path="/documents" element={<DocumentSelectionPage />} />
           <Route path="/templates" element={<TemplateShowcasePage />} />
           <Route path="/portal" element={<HRPortal />} />
