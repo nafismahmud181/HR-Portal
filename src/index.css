@@ -2,8 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Ensure full viewport coverage */
+html, body, #root {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -47,6 +55,7 @@ button {
   font-weight: 500;
   font-family: inherit;
   background-color: #1a1a1a;
+  color: white;
   cursor: pointer;
   transition: border-color 0.25s;
 }
@@ -68,5 +77,6 @@ button:focus-visible {
   }
   button {
     background-color: #f9f9f9;
+    color: #213547;
   }
 }
