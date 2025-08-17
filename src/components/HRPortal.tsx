@@ -594,7 +594,7 @@ ${formData.contactEmail}`;
                                   <img 
                                     src={formData.signatureImage} 
                                     alt="Signature" 
-                                    className="max-w-32 h-auto mx-auto"
+                                    className="max-w-32 h-auto"
                                   />
                                 </div>
                               )}
