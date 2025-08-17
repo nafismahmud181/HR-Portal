@@ -151,7 +151,7 @@ ${data.contactEmail}`;
     documentType: TemplateKey,
     filename: string,
     quality: QualityLevel = 'high'
-  ): Promise<void> {
+  ): Promise<Blob> {
     if (!this.backgroundImage) {
       throw new Error('Background image not loaded');
     }
@@ -238,8 +238,18 @@ ${data.contactEmail}`;
       // Add image to PDF (A4 dimensions: 210mm x 297mm)
       pdf.addImage(imgData, 'PNG', 0, 0, 210, 297, '', 'FAST');
       
-      // Save the PDF
-      pdf.save(filename);
+      // Get the PDF as a blob
+      const pdfBlob = pdf.output('blob');
+      
+      // Also save the PDF for user convenience
+      try {
+        pdf.save(filename);
+      } catch (saveError) {
+        console.warn('PDF save failed, but blob was generated successfully:', saveError);
+        // Don't throw error here, we still want to return the blob
+      }
+      
+      return pdfBlob;
     } catch (error) {
       // Clean up on error
       if (document.body.contains(tempDiv)) {
@@ -254,25 +264,40 @@ ${data.contactEmail}`;
     data: TemplateData,
     documentType: TemplateKey,
     quality: QualityLevel = 'high'
-  ): Promise<void> {
-    await this.loadBackgroundImage(imagePath);
+  ): Promise<{ blob: Blob; filename: string }> {
+    console.log('generateFromTemplate called with:', { imagePath, documentType, quality });
     
-    let filename: string;
-    switch (documentType) {
-      case 'loe':
-        filename = `Letter_of_Employment_${data.employeeName || 'Employee'}.pdf`;
-        break;
-      case 'experience':
-        filename = `Experience_Certificate_${data.employeeName || 'Employee'}.pdf`;
-        break;
-      case 'salary':
-        filename = `Salary_Certificate_${data.employeeName || 'Employee'}.pdf`;
-        break;
-      default:
-        filename = `Document_${data.employeeName || 'Employee'}.pdf`;
+    try {
+      console.log('Loading background image...');
+      await this.loadBackgroundImage(imagePath);
+      console.log('Background image loaded successfully');
+      
+      let filename: string;
+      switch (documentType) {
+        case 'loe':
+          filename = `Letter_of_Employment_${data.employeeName || 'Employee'}.pdf`;
+          break;
+        case 'experience':
+          filename = `Experience_Certificate_${data.employeeName || 'Employee'}.pdf`;
+          break;
+        case 'salary':
+          filename = `Salary_Certificate_${data.employeeName || 'Employee'}.pdf`;
+          break;
+        default:
+          filename = `Document_${data.employeeName || 'Employee'}.pdf`;
+      }
+      
+      console.log('Generated filename:', filename);
+      console.log('Calling generatePDF...');
+      
+      const blob = await this.generatePDF(data, documentType, filename, quality);
+      console.log('generatePDF completed, blob size:', blob.size);
+      
+      return { blob, filename };
+    } catch (error) {
+      console.error('Error in generateFromTemplate:', error);
+      throw error;
     }
-    
-    await this.generatePDF(data, documentType, filename, quality);
   }
 }
 
@@ -282,7 +307,7 @@ export const generatePDF = async (
   data: TemplateData,
   documentType: TemplateKey,
   quality: QualityLevel = 'high'
-): Promise<void> => {
+): Promise<{ blob: Blob; filename: string }> => {
   const generator = new PDFGenerator();
-  await generator.generateFromTemplate(imagePath, data, documentType, quality);
+  return await generator.generateFromTemplate(imagePath, data, documentType, quality);
 };

@@ -4,6 +4,9 @@ import { generatePDF } from './PDFGenerator';
 import SideNavbar from './SideNavbar';
 import type { TemplateKey } from './templates/TemplateRegistry';
 import { templates } from './templates/TemplateRegistry';
+import { documentService } from '../services/documentService';
+import { useAuth } from '../contexts/AuthContext';
+import FirebaseDebug from './FirebaseDebug';
 
 // Define types for better type safety
 type QualityLevel = 'standard' | 'high' | 'ultra';
@@ -31,6 +34,7 @@ interface InputField {
 }
 
 const HRPortal = () => {
+  const { currentUser } = useAuth();
   const [activeTemplate, setActiveTemplate] = useState<TemplateKey>('loe');
   const [selectedBackgroundImage, setSelectedBackgroundImage] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -57,6 +61,18 @@ const HRPortal = () => {
     if (documentType && ['loe', 'experience', 'salary'].includes(documentType)) {
       setActiveTemplate(documentType as TemplateKey);
     }
+
+    // Test Firestore connection on component mount
+    const testFirestore = async () => {
+      try {
+        const isConnected = await documentService.testConnection();
+        console.log('Firestore connection test result:', isConnected);
+      } catch (error) {
+        console.error('Firestore connection test failed:', error);
+      }
+    };
+
+    testFirestore();
   }, []);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
@@ -104,18 +120,70 @@ const HRPortal = () => {
       return;
     }
 
+    if (!currentUser || !currentUser.uid) {
+      alert('Please log in to generate and save documents');
+      return;
+    }
+
+    console.log('Current user:', currentUser.email, 'UID:', currentUser.uid);
+    console.log('Form data:', formData);
+    console.log('Active template:', activeTemplate);
+    console.log('Quality level:', qualityLevel);
+
     setIsGenerating(true);
     try {
-      await generatePDF(selectedBackgroundImage, formData, activeTemplate, qualityLevel);
+      console.log('Starting PDF generation...');
+      console.log('Background image:', selectedBackgroundImage);
+      
+      const result = await generatePDF(selectedBackgroundImage, formData, activeTemplate, qualityLevel);
+      console.log('PDF generation result:', result);
+      
+      const { blob, filename } = result;
+      console.log('PDF generated successfully, filename:', filename);
+      console.log('PDF blob size:', blob.size, 'bytes');
+      
+      // Upload PDF file to Firebase Storage and save document record to Firestore
+      console.log('Uploading PDF to Firebase Storage and saving to Firestore...');
+      const docId = await documentService.saveDocumentWithPDF(
+        currentUser.uid,
+        activeTemplate,
+        filename,
+        formData,
+        blob
+      );
+      
+      console.log('Document and PDF uploaded successfully. Document ID:', docId);
+      console.log('Document generated, PDF stored, and metadata saved successfully');
+      
+      // Show success message to user
+      alert('PDF generated and saved successfully! You can now access it anytime from your documents.');
     } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Error generating PDF. Please try again.');
+      console.error('Error in downloadPDFWithBackground:', error);
+      console.error('Error details:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : 'Unknown',
+        stack: error instanceof Error ? error.stack : 'Unknown'
+      });
+      
+      // Check if it's a Firestore error specifically
+      if (error instanceof Error && error.message.includes('Failed to upload document to database')) {
+        alert('PDF generated successfully, but failed to save to database. Please try again.');
+      } else {
+        alert('Error generating PDF. Please try again.');
+      }
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const downloadLetter = (): void => {
+  const downloadLetter = async (): Promise<void> => {
+    if (!currentUser || !currentUser.uid) {
+      alert('Please log in to generate and save documents');
+      return;
+    }
+
+    console.log('Current user for simple PDF:', currentUser.email, 'UID:', currentUser.uid);
+
     // Create a new window for PDF generation
     const printWindow = window.open('', '_blank');
     
@@ -215,11 +283,42 @@ ${formData.contactEmail}`;
     printWindow.document.close();
     
     // Wait for content to load, then print
-    printWindow.onload = () => {
-      setTimeout(() => {
+    printWindow.onload = async () => {
+      setTimeout(async () => {
         if (printWindow) {
           printWindow.print();
           printWindow.close();
+          
+          // Generate filename for the simple PDF
+          let filename: string;
+          switch(activeTemplate) {
+            case 'loe':
+              filename = `Simple_Letter_of_Employment_${formData.employeeName || 'Employee'}.pdf`;
+              break;
+            case 'experience':
+              filename = `Simple_Experience_Certificate_${formData.employeeName || 'Employee'}.pdf`;
+              break;
+            case 'salary':
+              filename = `Simple_Salary_Certificate_${formData.employeeName || 'Employee'}.pdf`;
+              break;
+            default:
+              filename = `Simple_Document_${formData.employeeName || 'Employee'}.pdf`;
+          }
+          
+                     // For simple PDFs, we don't have a blob, so we just save the metadata
+           // The user can regenerate the PDF later using the stored form data
+           try {
+             await documentService.saveDocumentRecord(
+               currentUser.uid,
+               activeTemplate,
+               filename,
+               formData
+             );
+             console.log('Simple PDF document metadata saved to Firestore successfully');
+           } catch (error) {
+             console.error('Error saving document to Firestore:', error);
+             // Don't show error to user since PDF was generated successfully
+           }
         }
       }, 500);
     };
@@ -481,40 +580,45 @@ ${formData.contactEmail}`;
             </div>
           </div>
 
-          {/* Company Info Section */}
-          <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-lg font-semibold mb-4 text-gray-800">Company Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
-                <input
-                  type="text"
-                  value={formData.companyName}
-                  onChange={(e) => handleInputChange('companyName', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Contact Phone</label>
-                <input
-                  type="text"
-                  value={formData.contactPhone}
-                  onChange={(e) => handleInputChange('contactPhone', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Contact Email</label>
-                <input
-                  type="email"
-                  value={formData.contactEmail}
-                  onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                </div>
-              </div>
-            </div>
-          </div>
+                     {/* Company Info Section */}
+           <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
+             <h3 className="text-lg font-semibold mb-4 text-gray-800">Company Information</h3>
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+               <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
+                 <input
+                   type="text"
+                   value={formData.companyName}
+                   onChange={(e) => handleInputChange('companyName', e.target.value)}
+                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                 />
+               </div>
+               <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-2">Contact Phone</label>
+                 <input
+                   type="text"
+                   value={formData.contactPhone}
+                   onChange={(e) => handleInputChange('contactPhone', e.target.value)}
+                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                 />
+               </div>
+               <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-2">Contact Email</label>
+                 <input
+                   type="email"
+                   value={formData.contactEmail}
+                   onChange={(e) => handleInputChange('contactEmail', e.target.value)}
+                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                 />
+                 </div>
+               </div>
+             </div>
+           </div>
+
+           {/* Firebase Debug Section - Temporary for troubleshooting */}
+           <div className="mt-8">
+             <FirebaseDebug />
+           </div>
         </div>
       </div>
     </div>

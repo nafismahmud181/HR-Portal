@@ -1,5 +1,7 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
 // Your Firebase configuration object
 // Replace these values with your actual Firebase project configuration
@@ -15,10 +17,14 @@ const firebaseConfig = {
 // Initialize Firebase
 let app: FirebaseApp | undefined;
 let auth: Auth;
+let firestore: Firestore;
+let storage: FirebaseStorage;
 
 try {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
+  firestore = getFirestore(app);
+  storage = getStorage(app);
   console.log('Firebase initialized successfully');
 } catch (error) {
   console.error('Firebase initialization error:', error);
@@ -32,7 +38,10 @@ try {
     sendPasswordResetEmail: async () => { throw new Error('Firebase not configured'); },
     updateProfile: async () => { throw new Error('Firebase not configured'); }
   } as unknown as Auth;
+  
+  // Create a mock firestore object for development
+  firestore = {} as unknown as Firestore;
 }
 
-export { auth };
+export { auth, firestore, storage };
 export default app;
