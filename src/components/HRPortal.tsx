@@ -4,6 +4,7 @@ import { generatePDF } from './PDFGenerator';
 
 // Define types for better type safety
 type TemplateKey = 'loe' | 'experience' | 'salary';
+type QualityLevel = 'standard' | 'high' | 'ultra';
 
 interface Template {
   name: string;
@@ -37,6 +38,7 @@ const HRPortal = () => {
   const [activeTemplate, setActiveTemplate] = useState<TemplateKey>('loe');
   const [selectedBackgroundImage, setSelectedBackgroundImage] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [qualityLevel, setQualityLevel] = useState<QualityLevel>('high');
   const [formData, setFormData] = useState<FormData>({
     employeeName: '',
     joiningDate: '',
@@ -158,7 +160,7 @@ ${formData.contactEmail}`;
 
     setIsGenerating(true);
     try {
-      await generatePDF(selectedBackgroundImage, formData, activeTemplate);
+      await generatePDF(selectedBackgroundImage, formData, activeTemplate, qualityLevel);
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Error generating PDF. Please try again.');
@@ -259,21 +261,44 @@ ${formData.contactEmail}`;
         {/* Background Image Upload Section */}
         <div className="mb-8 bg-white rounded-xl shadow-lg p-6">
           <h2 className="text-xl font-semibold mb-4 text-gray-800">Upload Background Image</h2>
-          <div className="flex items-center space-x-4">
-            <input
-              type="file"
-              accept=".png,.jpg,.jpeg"
-              onChange={handleBackgroundImageUpload}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div className="md:col-span-2">
+              <input
+                type="file"
+                accept=".png,.jpg,.jpeg"
+                onChange={handleBackgroundImageUpload}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">PDF Quality</label>
+              <select
+                value={qualityLevel}
+                onChange={(e) => setQualityLevel(e.target.value as QualityLevel)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="standard">Standard (Fast)</option>
+                <option value="high">High Quality</option>
+                <option value="ultra">Ultra HD</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
             <button
               onClick={downloadPDFWithBackground}
               disabled={!selectedBackgroundImage || isGenerating}
-              className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="flex items-center space-x-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-5 h-5" />
               <span>{isGenerating ? 'Generating...' : 'Generate PDF'}</span>
             </button>
+            <div className="text-sm text-gray-600">
+              <p>Quality: <span className="font-semibold">
+                {qualityLevel === 'standard' ? 'Standard (2x)' : 
+                 qualityLevel === 'high' ? 'High (4x)' : 'Ultra HD (6x)'}
+              </span></p>
+              <p>File size will be larger with higher quality</p>
+            </div>
           </div>
           <p className="text-sm text-gray-600 mt-2">
             Upload your PNG background image (A4 format recommended). The text will be overlaid on top.
@@ -394,6 +419,7 @@ ${formData.contactEmail}`;
                 <h4 className="font-semibold text-blue-800 mb-2">Instructions:</h4>
                 <ul className="text-sm text-blue-700 space-y-1">
                   <li>• Upload your PNG background image (A4 format recommended)</li>
+                  <li>• Choose your preferred PDF quality level</li>
                   <li>• Fill in the required fields in the left panel</li>
                   <li>• Preview updates automatically as you type</li>
                   <li>• Click "PDF with Background" to create a professional document</li>

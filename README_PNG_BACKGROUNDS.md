@@ -1,12 +1,33 @@
 # PNG Background Template Guide for HR Portal
 
 ## Overview
-The HR Portal now supports PNG background images, allowing you to create professional documents with your company's branding, header images, and exact formatting. The text content is overlaid on top of your background image.
+The HR Portal now supports PNG background images with **configurable quality levels**, allowing you to create professional documents with your company's branding, header images, and exact formatting. The text content is overlaid on top of your background image with **ultra-high quality output**.
 
 ## How It Works
 1. **Upload your PNG background image** (A4 format recommended)
-2. **Fill in the form data** in the portal
-3. **Generate the final PDF** with text overlaid on your background
+2. **Select your preferred quality level** (Standard, High, or Ultra HD)
+3. **Fill in the form data** in the portal
+4. **Generate the final PDF** with text overlaid on your background
+
+## Quality Levels
+
+### 🚀 **Standard Quality (2x Scale)**
+- **Speed**: Fastest generation
+- **File Size**: Smallest
+- **Quality**: Good for basic documents
+- **Use Case**: Quick drafts, internal documents
+
+### ⭐ **High Quality (4x Scale) - Recommended**
+- **Speed**: Balanced performance
+- **File Size**: Moderate
+- **Quality**: Excellent for professional use
+- **Use Case**: Business letters, certificates, official documents
+
+### 🔥 **Ultra HD (6x Scale)**
+- **Speed**: Slower generation
+- **File Size**: Largest
+- **Quality**: Maximum quality for printing
+- **Use Case**: High-end printing, archival documents
 
 ## Creating Background Images
 
@@ -37,15 +58,29 @@ The HR Portal now supports PNG background images, allowing you to create profess
 2. Select your PNG background image file
 3. The image will be loaded and ready for use
 
-### Step 2: Fill Form Data
+### Step 2: Select Quality Level
+1. Choose from the quality dropdown:
+   - **Standard (2x)**: Fast generation, smaller files
+   - **High (4x)**: Balanced quality and performance
+   - **Ultra HD (6x)**: Maximum quality for printing
+
+### Step 3: Fill Form Data
 1. Select the document type (LOE, Experience, or Salary Certificate)
 2. Fill in all required fields
 3. The preview will update automatically
 
-### Step 3: Generate Document
-1. Click "PDF with Background" to create the final document
+### Step 4: Generate Document
+1. Click "Generate PDF" to create the final document
 2. The PDF will download automatically with your text overlaid on the background
 3. All form data will be properly formatted and positioned
+
+## Quality Comparison
+
+| Quality Level | Scale Factor | Resolution | File Size | Generation Time | Best For |
+|---------------|--------------|------------|-----------|-----------------|----------|
+| **Standard** | 2x | 1,588 × 2,246 px | Small | Fast | Quick drafts |
+| **High** | 4x | 3,176 × 4,492 px | Medium | Moderate | Professional use |
+| **Ultra HD** | 6x | 4,764 × 6,738 px | Large | Slow | High-end printing |
 
 ## Background Image Best Practices
 
@@ -114,12 +149,14 @@ The HR Portal now supports PNG background images, allowing you to create profess
 3. **Text positioning**: Ensure adequate margins and clear text areas
 4. **File too large**: Optimize image size while maintaining quality
 5. **Format issues**: Stick to A4 dimensions for best results
+6. **Slow generation**: Try Standard quality for faster processing
 
 ### Support
 - Ensure your browser supports file uploads
 - Check that the image file isn't corrupted
 - Verify image dimensions are close to A4 format
 - Test with a simple background first
+- Use Standard quality if Ultra HD is too slow
 
 ## Advanced Features
 
@@ -136,6 +173,12 @@ You can create different backgrounds for:
 - **Layout**: Design unique layouts for different purposes
 - **Graphics**: Add subtle background patterns or textures
 
+### Quality Optimization
+- **Performance**: Balance quality vs. generation speed
+- **File Size**: Choose appropriate quality for your needs
+- **Printing**: Use Ultra HD for high-end printing
+- **Digital**: High quality is sufficient for most digital use
+
 ## File Management
 
 ### Organizing Your Templates
@@ -150,4 +193,18 @@ You can create different backgrounds for:
 - **Quality Checks**: Verify image quality and text readability
 - **User Feedback**: Gather feedback on background usability
 
-This system gives you complete control over your document appearance while maintaining the convenience of automated data filling. Your background image becomes the template, ensuring perfect formatting and branding consistency.
+## Performance Tips
+
+### For Faster Generation
+- Use Standard quality for drafts
+- Optimize background image size
+- Close other browser tabs
+- Use modern browsers (Chrome, Firefox, Edge)
+
+### For Best Quality
+- Use Ultra HD for final documents
+- Ensure high-resolution background images
+- Allow sufficient processing time
+- Use PNG format for best results
+
+This system gives you complete control over your document appearance while maintaining the convenience of automated data filling. Your background image becomes the template, ensuring perfect formatting and branding consistency. **Choose the quality level that best fits your needs** - from fast drafts to print-ready professional documents.
