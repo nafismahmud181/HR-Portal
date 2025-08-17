@@ -25,6 +25,7 @@ interface FormData {
   contactPhone: string;
   contactEmail: string;
   website: string;
+  signatureImage?: string; // Optional signature image data URL
 }
 
 interface InputField {
@@ -46,7 +47,7 @@ const HRPortal = () => {
     currency: 'USD',
     position: 'Data Scientist',
     companyName: 'Inteliweave',
-    signatoryName: '',
+    signatoryName: 'Rageeb Noor Uddin',
     signatoryTitle: 'Proprietor',
     contactPhone: '+880 1789 490 105',
     contactEmail: 'info@inteliweave.com.bd',
@@ -97,6 +98,7 @@ This is to certify that ${formData.employeeName ? `Mr./Ms. ${formData.employeeNa
 
 If you have any questions regarding ${formData.employeeName ? `${formData.employeeName}'s` : 'the employee\'s'} employment, please contact our office at ${formData.contactPhone} or ${formData.contactEmail}.
 
+Signature Image
 
 ${formData.signatoryName || '[Signatory Name]'}
 ${formData.signatoryTitle}
@@ -113,6 +115,7 @@ During ${formData.employeeName ? 'his/her' : 'their'} tenure, ${formData.employe
 
 We wish ${formData.employeeName ? 'him/her' : 'them'} all the best for future endeavors.
 
+Signature Image
 
 ${formData.signatoryName || '[Signatory Name]'}
 ${formData.signatoryTitle}
@@ -149,6 +152,21 @@ ${formData.contactEmail}`;
     if (file) {
       // Store the file path or handle the upload
       setSelectedBackgroundImage(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSignatureImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Convert to data URL for storage
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const target = e.target as FileReader;
+        if (target.result) {
+          setFormData(prev => ({ ...prev, signatureImage: target.result as string }));
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -246,7 +264,8 @@ ${formData.contactEmail}`;
     signatoryTitle: { label: 'Signatory Title', icon: <PenTool className="w-4 h-4" />, type: 'text' },
     contactPhone: { label: 'Contact Phone', icon: <User className="w-4 h-4" />, type: 'text' },
     contactEmail: { label: 'Contact Email', icon: <User className="w-4 h-4" />, type: 'email' },
-    website: { label: 'Website', icon: <Building className="w-4 h-4" />, type: 'text' }
+    website: { label: 'Website', icon: <Building className="w-4 h-4" />, type: 'text' },
+    signatureImage: { label: 'Signature Image', icon: <PenTool className="w-4 h-4" />, type: 'file' }
   };
 
   return (
@@ -364,6 +383,27 @@ ${formData.contactEmail}`;
                     );
                   })}
 
+                  {/* Signature Image Upload */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <div className="flex items-center space-x-2">
+                        <PenTool className="w-4 h-4" />
+                        <span>Signature Image (PNG)</span>
+                      </div>
+                    </label>
+                    <input
+                      type="file"
+                      accept=".png,.jpg,.jpeg"
+                      onChange={handleSignatureImageUpload}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                    {formData.signatureImage && (
+                      <div className="mt-2 p-2 bg-green-50 rounded border border-green-200">
+                        <p className="text-sm text-green-700">✓ Signature image uploaded successfully</p>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Signatory Details - Always shown */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -380,6 +420,8 @@ ${formData.contactEmail}`;
                       placeholder="Enter signatory name"
                     />
                   </div>
+
+                  
                 </div>
               </div>
             </div>

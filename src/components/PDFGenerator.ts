@@ -13,6 +13,7 @@ export interface TemplateData {
   contactPhone: string;
   contactEmail: string;
   website: string;
+  signatureImage?: string; // Optional signature image data URL
 }
 
 export type QualityLevel = 'standard' | 'high' | 'ultra';
@@ -53,6 +54,7 @@ Dear Sir/Madam,
 This is to certify that ${data.employeeName ? `Mr./Ms. ${data.employeeName}` : '[Employee Name]'} is an employee at ${data.companyName}, and ${data.employeeName ? 'he/she' : 'they'} has been working as a ${data.position} since ${data.joiningDate ? this.formatDate(data.joiningDate) : '[Joining Date]'}. ${data.employeeName ? 'His/Her' : 'Their'} current salary is ${data.currency} ${data.salary || '[Salary Amount]'}, paid bi-weekly.
 
 If you have any questions regarding ${data.employeeName ? `${data.employeeName}'s` : 'the employee\'s'} employment, please contact our office at ${data.contactPhone} or ${data.contactEmail}.
+
 
 ${data.signatoryName || '[Signatory Name]'}
 
@@ -115,13 +117,27 @@ ${data.contactEmail}`;
     }
   }
 
-  private convertTextToHTML(text: string): string {
+  private convertTextToHTML(text: string, data: TemplateData): string {
     // Split text into paragraphs and add proper spacing
     const paragraphs = text.split('\n\n');
-    return paragraphs.map(paragraph => {
-      if (paragraph.trim() === '') return '';
-      return `<p style="margin: 0 0 ${16}px 0; line-height: 1.6;">${paragraph.trim()}</p>`;
-    }).join('');
+    let html = '';
+    
+    paragraphs.forEach((paragraph) => {
+      if (paragraph.trim() === '') return;
+      
+      // Check if this is the position where we want to insert the signature
+      if ((paragraph === 'Signature' || paragraph === 'Signature Image') && data.signatureImage) {
+        // Add signature image after the "Signature" or "Signature Image" label
+        html += `<p style="margin: 0 0 ${16}px 0; line-height: 1.6; text-align: center; font-weight: bold;">${paragraph.trim()}</p>`;
+        html += `<div style="margin: 0 0 ${32}px 0; text-align: center;">
+          <img src="${data.signatureImage}" alt="Signature" style="max-width: 200px; height: auto; margin-bottom: 16px;" />
+        </div>`;
+              } else {
+          html += `<p style="margin: 0 0 ${16}px 0; line-height: 1.6;">${paragraph.trim()}</p>`;
+        }
+    });
+    
+    return html;
   }
 
   async generatePDF(
@@ -159,7 +175,7 @@ ${data.contactEmail}`;
 
     // Add content with proper HTML formatting
     const content = this.getGeneratedContent(data, documentType);
-    tempDiv.innerHTML = this.convertTextToHTML(content);
+    tempDiv.innerHTML = this.convertTextToHTML(content, data);
 
     // Add to DOM temporarily
     document.body.appendChild(tempDiv);
@@ -193,6 +209,13 @@ ${data.contactEmail}`;
               (p as HTMLElement).style.lineHeight = `${1.6 * scale}px`;
               (p as HTMLElement).style.fontSize = `${14 * scale}px`;
             });
+            
+            // Scale signature image if present
+            const signatureImg = clonedDiv.querySelector('img') as HTMLImageElement;
+            if (signatureImg) {
+              signatureImg.style.maxWidth = `${200 * scale}px`;
+              signatureImg.style.marginBottom = `${16 * scale}px`;
+            }
           }
         }
       });
