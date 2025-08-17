@@ -130,14 +130,16 @@ ${data.contactEmail}`;
       
       // Check if this is the position where we want to insert the signature
       if ((paragraph === 'Signature' || paragraph === 'Signature Image') && data.signatureImage) {
-        // Add signature image after the "Signature" or "Signature Image" label
-        html += `<p style="margin: 0 0 ${16}px 0; line-height: 1.6; text-align: center; font-weight: bold;">${paragraph.trim()}</p>`;
+        // Insert ONLY the signature image, without the "Signature Image" text
         html += `<div style="margin: 0 0 ${32}px 0; text-align: center;">
-          <img src="${data.signatureImage}" alt="Signature" style="max-width: 200px; height: auto; margin-bottom: 16px;" />
+          <img src="${data.signatureImage}" alt="Signature" style="max-width: 300px; height: auto; margin-bottom: 16px;" />
         </div>`;
-              } else {
-          html += `<p style="margin: 0 0 ${16}px 0; line-height: 1.6;">${paragraph.trim()}</p>`;
-        }
+      } else if (paragraph !== 'Signature' && paragraph !== 'Signature Image') {
+        // Only add paragraph if it's not the signature placeholder text
+        html += `<p style="margin: 0 0 ${16}px 0; line-height: 1.6;">${paragraph.trim()}</p>`;
+      }
+      // If paragraph is 'Signature' or 'Signature Image' but no signature image is provided,
+      // we skip adding anything (neither text nor image)
     });
     
     return html;
@@ -216,7 +218,7 @@ ${data.contactEmail}`;
             // Scale signature image if present
             const signatureImg = clonedDiv.querySelector('img') as HTMLImageElement;
             if (signatureImg) {
-              signatureImg.style.maxWidth = `${200 * scale}px`;
+              signatureImg.style.maxWidth = `${300 * scale}px`;
               signatureImg.style.marginBottom = `${16 * scale}px`;
             }
           }
