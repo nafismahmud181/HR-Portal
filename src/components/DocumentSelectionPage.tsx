@@ -1,4 +1,4 @@
-import { FileText, Download, DollarSign, PenTool, Building, ArrowRight, ArrowLeft } from 'lucide-react';
+import { FileText, Download, DollarSign, PenTool, Building, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SideNavbar from './SideNavbar';
 
@@ -8,10 +8,6 @@ const DocumentSelectionPage = () => {
   const handleDocumentSelect = (documentType: string) => {
     // Navigate to the main HR Portal with the selected document type
     navigate(`/portal?type=${documentType}`);
-  };
-
-  const handleBackToHome = () => {
-    navigate('/');
   };
 
   const documentTypes = [
@@ -78,13 +74,6 @@ const DocumentSelectionPage = () => {
               <div className="flex items-center space-x-3">
                 <span className="text-xl font-bold text-gray-900">Document Selection</span>
               </div>
-              <button
-                onClick={handleBackToHome}
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                <span>Back to Home</span>
-              </button>
             </div>
           </div>
         </nav>

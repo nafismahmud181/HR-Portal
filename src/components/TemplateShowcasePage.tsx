@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   FileText, 
   DollarSign, 
@@ -7,7 +7,6 @@ import {
   TrendingUp, 
   LogOut, 
   MessageSquare,
-  ArrowLeft,
   Briefcase,
   Clock,
   CheckCircle,
@@ -25,7 +24,9 @@ import {
   GraduationCap,
   ThumbsUp,
   MapPin,
-  Plane
+  Plane,
+  Search,
+  X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SideNavbar from './SideNavbar';
@@ -52,6 +53,9 @@ interface Template {
 
 const TemplateShowcasePage = () => {
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
   const templateCategories: TemplateCategory[] = [
     {
@@ -423,9 +427,25 @@ const TemplateShowcasePage = () => {
     }
   };
 
-  const handleBackToHome = () => {
-    navigate('/');
-  };
+
+
+  // Filter templates based on search query, category, and status
+  const filteredTemplateCategories = useMemo(() => {
+    return templateCategories.map(category => ({
+      ...category,
+      templates: category.templates.filter(template => {
+        const matchesSearch = searchQuery === '' || 
+          template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          template.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          category.title.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        const matchesCategory = selectedCategory === 'all' || category.id === selectedCategory;
+        const matchesStatus = selectedStatus === 'all' || template.status === selectedStatus;
+        
+        return matchesSearch && matchesCategory && matchesStatus;
+      })
+    })).filter(category => category.templates.length > 0);
+  }, [searchQuery, selectedCategory, selectedStatus]);
 
   const handleTemplateClick = (templateId: string) => {
     // Check if template is available and navigate accordingly
@@ -448,6 +468,12 @@ const TemplateShowcasePage = () => {
     }
   };
 
+  const clearSearch = () => {
+    setSearchQuery('');
+    setSelectedCategory('all');
+    setSelectedStatus('all');
+  };
+
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       {/* Side Navbar */}
@@ -462,13 +488,6 @@ const TemplateShowcasePage = () => {
               <div className="flex items-center space-x-3">
                 <span className="text-xl font-bold text-gray-900">Template Showcase</span>
               </div>
-              <button
-                onClick={handleBackToHome}
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                <span>Back to Home</span>
-              </button>
             </div>
           </div>
         </nav>
@@ -481,90 +500,193 @@ const TemplateShowcasePage = () => {
                <h1 className="text-4xl font-bold text-gray-800 mb-4">
                  HR Template Library
                </h1>
-               <p className="text-xl text-gray-600 mb-6">
-                 Comprehensive collection of professional HR documents and templates
-               </p>
-             </div>
-
-            {/* Template Categories */}
-            <div className="space-y-12">
-              {templateCategories.map((category) => (
-                <div key={category.id} className="bg-white rounded-xl shadow-lg overflow-hidden">
-                  {/* Category Header */}
-                  <div className={`bg-gradient-to-r ${category.color} p-6 border-b ${category.borderColor}`}>
-                    <div className="flex items-center space-x-4">
-                      {category.icon}
-                      <div>
-                        <h2 className={`text-2xl font-bold ${category.textColor}`}>
+                               <p className="text-xl text-gray-600 mb-6">
+                  Comprehensive collection of professional HR documents and templates
+                </p>
+                
+                {/* Search and Filter Section */}
+                <div className="max-w-4xl mx-auto mb-8">
+                  {/* Search Bar */}
+                  <div className="relative mb-4">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Search className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Search templates by name, description, or category..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="bg-white block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2  text-gray-900 placeholder-gray-500"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={clearSearch}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      >
+                        <X className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Filter Controls */}
+                  <div className="flex flex-wrap gap-3 justify-center">
+                    {/* Category Filter */}
+                    <select
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700 bg-white"
+                    >
+                      <option value="all">All Categories</option>
+                      {templateCategories.map(category => (
+                        <option key={category.id} value={category.id}>
                           {category.title}
-                        </h2>
-                        <p className={`text-lg ${category.textColor} opacity-80`}>
-                          {category.description}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Templates Grid */}
-                  <div className="p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {category.templates.map((template) => (
-                                                 <div
-                           key={template.id}
-                           className={`bg-white border-2 rounded-lg p-6 transition-all duration-200 ${
-                             template.status === 'available' 
-                               ? 'border-blue-200 hover:border-blue-400 hover:shadow-lg cursor-pointer' 
-                               : 'border-gray-200 opacity-75 cursor-default'
-                           }`}
-                         >
-                          {/* Template Header */}
-                          <div className="flex items-start justify-between mb-4">
-                            <div className="flex items-center space-x-3">
-                              <div className="text-gray-600">
-                                {template.icon}
-                              </div>
-                              <div>
-                                <h3 className="font-semibold text-gray-900 text-lg">
-                                  {template.name}
-                                </h3>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Template Description */}
-                          <p className="text-gray-600 text-sm mb-4">
-                            {template.description}
-                          </p>
-
-                                                     {/* Template Status and Priority */}
-                           <div className="flex items-center justify-between mb-4">
-                             <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(template.status)}`}>
-                               {template.status.replace('-', ' ').toUpperCase()}
-                             </span>
-                             <span className={`text-xs font-medium ${getPriorityColor(template.priority)}`}>
-                               {template.priority.toUpperCase()} PRIORITY
-                             </span>
-                           </div>
-
-                           {/* Action Button for Available Templates */}
-                           {template.status === 'available' && (
-                             <button
-                               onClick={(e) => {
-                                 e.stopPropagation();
-                                 handleTemplateClick(template.id);
-                               }}
-                               className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                             >
-                               Create Document
-                             </button>
-                           )}
-                        </div>
+                        </option>
                       ))}
-                    </div>
+                    </select>
+                    
+                    {/* Status Filter */}
+                    <select
+                      value={selectedStatus}
+                      onChange={(e) => setSelectedStatus(e.target.value)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700 bg-white"
+                    >
+                      <option value="all">All Status</option>
+                      <option value="available">Available</option>
+                      <option value="coming-soon">Coming Soon</option>
+                      <option value="planned">Planned</option>
+                    </select>
+                    
+                    {/* Clear Filters Button */}
+                    {(selectedCategory !== 'all' || selectedStatus !== 'all' || searchQuery) && (
+                      <button
+                        onClick={clearSearch}
+                        className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        Clear Filters
+                      </button>
+                    )}
                   </div>
+                  
+                  {/* Search Results Summary */}
+                  {searchQuery && (
+                    <div className="text-center mt-3">
+                      <p className="text-sm text-gray-600">
+                        Showing {filteredTemplateCategories.reduce((total, cat) => total + cat.templates.length, 0)} results for "{searchQuery}"
+                      </p>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
+              </div>
+
+                                      {/* Template Categories */}
+             {filteredTemplateCategories.length > 0 ? (
+               <div className="space-y-12">
+                 {filteredTemplateCategories.map((category) => (
+                   <div key={category.id} className="bg-white rounded-xl shadow-lg overflow-hidden">
+                     {/* Category Header */}
+                     <div className={`bg-gradient-to-r ${category.color} p-6 border-b ${category.borderColor}`}>
+                       <div className="flex items-center space-x-4">
+                         {category.icon}
+                         <div>
+                           <h2 className={`text-2xl font-bold ${category.textColor}`}>
+                             {category.title}
+                           </h2>
+                           <p className={`text-lg ${category.textColor} opacity-80`}>
+                             {category.description}
+                           </p>
+                         </div>
+                       </div>
+                     </div>
+
+                     {/* Templates Grid */}
+                     <div className="p-6">
+                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                         {category.templates.map((template) => (
+                           <div
+                             key={template.id}
+                             className={`bg-white border-2 rounded-lg p-6 transition-all duration-200 ${
+                               template.status === 'available' 
+                                 ? 'border-blue-200 hover:border-blue-400 hover:shadow-lg cursor-pointer' 
+                                 : 'border-gray-200 opacity-75 cursor-default'
+                             }`}
+                           >
+                             {/* Template Header */}
+                             <div className="flex items-start justify-between mb-4">
+                               <div className="flex items-center space-x-3">
+                                 <div className="text-gray-600">
+                                   {template.icon}
+                                 </div>
+                                 <div>
+                                   <h3 className="font-semibold text-gray-900 text-lg">
+                                     {template.name}
+                                   </h3>
+                                 </div>
+                               </div>
+                             </div>
+
+                             {/* Template Description */}
+                             <p className="text-gray-600 text-sm mb-4">
+                               {template.description}
+                             </p>
+
+                             {/* Template Status and Priority */}
+                             <div className="flex items-center justify-between mb-4">
+                               <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(template.status)}`}>
+                                 {template.status.replace('-', ' ').toUpperCase()}
+                               </span>
+                               <span className={`text-xs font-medium ${getPriorityColor(template.priority)}`}>
+                                 {template.priority.toUpperCase()} PRIORITY
+                               </span>
+                             </div>
+
+                             {/* Action Button for Available Templates */}
+                             {template.status === 'available' && (
+                               <button
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   handleTemplateClick(template.id);
+                                 }}
+                                 className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                               >
+                                 Create Document
+                               </button>
+                               )}
+                           </div>
+                         ))}
+                       </div>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             ) : (
+               /* No Results Message */
+               <div className="text-center py-16">
+                 <div className="bg-white rounded-xl shadow-lg p-12 max-w-2xl mx-auto">
+                   <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                   <h3 className="text-2xl font-bold text-gray-800 mb-2">No templates found</h3>
+                   <p className="text-gray-600 mb-6">
+                     {searchQuery 
+                       ? `No templates match your search for "${searchQuery}"`
+                       : 'No templates match your current filters'
+                     }
+                   </p>
+                   <div className="flex flex-wrap gap-3 justify-center">
+                     <button
+                       onClick={clearSearch}
+                       className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                     >
+                       Clear All Filters
+                     </button>
+                     <button
+                       onClick={() => navigate('/documents')}
+                       className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium"
+                     >
+                       View Available Templates
+                     </button>
+                   </div>
+                 </div>
+               </div>
+             )}
 
                          {/* Footer */}
              <div className="mt-12 text-center">
@@ -604,12 +726,6 @@ const TemplateShowcasePage = () => {
                      className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
                    >
                      View Available Templates
-                   </button>
-                   <button
-                     onClick={handleBackToHome}
-                     className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium"
-                   >
-                     Back to Home
                    </button>
                  </div>
                </div>
