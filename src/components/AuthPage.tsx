@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Mail,
   Lock,
@@ -15,11 +15,11 @@ import { useAuth } from '../contexts/AuthContext';
 
 const AuthPage = () => {
   const navigate = useNavigate();
-  const { login, signup, resetPassword } = useAuth();
+  const { login, signup, resetPassword, currentUser, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [formData, setFormData] = useState({
@@ -29,6 +29,30 @@ const AuthPage = () => {
     confirmPassword: '',
     agreeToTerms: false
   });
+
+  // Redirect if user is already authenticated
+  useEffect(() => {
+    if (!loading && currentUser) {
+      navigate('/documents', { replace: true });
+    }
+  }, [currentUser, loading, navigate]);
+
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render auth forms if user is already authenticated
+  if (currentUser) {
+    return null;
+  }
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({
@@ -40,7 +64,7 @@ const AuthPage = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
+    setIsSubmitting(true);
     
     try {
       await login(formData.email, formData.password);
@@ -49,7 +73,7 @@ const AuthPage = () => {
       const errorMessage = error instanceof Error ? error.message : 'Failed to sign in';
       setError(errorMessage);
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -67,7 +91,7 @@ const AuthPage = () => {
       return;
     }
     
-    setLoading(true);
+    setIsSubmitting(true);
     
     try {
       await signup(formData.email, formData.password, formData.name);
@@ -80,7 +104,7 @@ const AuthPage = () => {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create account';
       setError(errorMessage);
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -91,7 +115,7 @@ const AuthPage = () => {
     }
     
     setError('');
-    setLoading(true);
+    setIsSubmitting(true);
     
     try {
       await resetPassword(formData.email);
@@ -100,7 +124,7 @@ const AuthPage = () => {
       const errorMessage = error instanceof Error ? error.message : 'Failed to send reset email';
       setError(errorMessage);
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -210,7 +234,7 @@ const AuthPage = () => {
                 <button
                   type="button"
                   onClick={handleForgotPassword}
-                  disabled={loading}
+                  disabled={isSubmitting}
                   className="text-sm text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Forgot password?
@@ -220,10 +244,10 @@ const AuthPage = () => {
               {/* Login Button */}
               <button
                 type="submit"
-                disabled={loading}
+                disabled={isSubmitting}
                 className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? (
+                {isSubmitting ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                     <span>Signing In...</span>
@@ -373,10 +397,10 @@ const AuthPage = () => {
               {/* Register Button */}
               <button
                 type="submit"
-                disabled={loading}
+                disabled={isSubmitting}
                 className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? (
+                {isSubmitting ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                     <span>Creating Account...</span>

@@ -1,12 +1,18 @@
 import { FileText, Download, DollarSign, PenTool, Building, ArrowRight, CheckCircle, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
   const handleGetStarted = () => {
-    // Navigate to the document selection page using React Router
-    navigate('/documents');
+    // Check if user is authenticated, if not redirect to auth page
+    if (currentUser) {
+      navigate('/documents');
+    } else {
+      navigate('/auth');
+    }
   };
 
   const features = [
@@ -109,7 +115,13 @@ const LandingPage = () => {
               <ArrowRight className="w-5 h-5" />
             </button>
             <button
-              onClick={() => navigate('/templates')}
+              onClick={() => {
+                if (currentUser) {
+                  navigate('/templates');
+                } else {
+                  navigate('/auth');
+                }
+              }}
               className="bg-green-600 text-white px-8 py-4 rounded-lg hover:bg-green-700 transition-colors text-lg font-semibold flex items-center justify-center space-x-2"
             >
               <span>View All Templates</span>
