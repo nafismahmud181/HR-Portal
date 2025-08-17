@@ -546,11 +546,153 @@ ${formData.contactEmail}`;
                   </div>
                 </div>
 
-                <div className="bg-gray-50 p-6 rounded-lg border-2 border-dashed border-gray-300">
-                  <pre className="whitespace-pre-wrap text-sm text-gray-800 font-mono leading-relaxed">
-                    {getGeneratedContent()}
-                  </pre>
+                {/* PDF Preview */}
+                <div className="relative bg-white border-2 border-gray-300 rounded-lg shadow-lg overflow-hidden" style={{ aspectRatio: '210/297' }}>
+                  {/* Background Image */}
+                  {selectedBackgroundImage && (
+                    <div 
+                      className="absolute inset-0 bg-cover bg-center"
+                      style={{ 
+                        backgroundImage: `url(${selectedBackgroundImage})`,
+                        opacity: 0.3
+                      }}
+                    />
+                  )}
+                  
+                  {/* Content Overlay */}
+                  <div className="relative z-10 p-8 h-full flex flex-col">
+                    <div className="flex-1 pt-32">
+                      <div 
+                        className="text-gray-800 leading-relaxed"
+                        style={{ 
+                          fontSize: '14px',
+                          lineHeight: '1.6',
+                          fontFamily: 'Times New Roman, serif'
+                        }}
+                      >
+                        {activeTemplate === 'loe' && (
+                          <div>
+                            <div className="text-left mb-6">
+                              <h1 className="text-xl font-bold mb-2">To Whom It May Concern:</h1>
+                            </div>
+                            
+                            <div className="text-left mb-4">
+                              <p className="mb-4">Dear Sir/Madam,</p>
+                              
+                              <p className="mb-4">
+                                This is to certify that {formData.employeeName ? `Mr./Ms. ${formData.employeeName}` : '[Employee Name]'} is an employee at {formData.companyName}, and {formData.employeeName ? 'he/she' : 'they'} has been working as a {formData.position} since {formData.joiningDate ? formatDate(formData.joiningDate) : '[Joining Date]'}. {formData.employeeName ? 'His/Her' : 'Their'} current salary is {formData.currency} {formData.salary || '[Salary Amount]'}, paid bi-weekly.
+                              </p>
+                              
+                              <p className="mb-4">
+                                If you have any questions regarding {formData.employeeName ? `${formData.employeeName}'s` : 'the employee\'s'} employment, please contact our office at {formData.contactPhone} or {formData.contactEmail}.
+                              </p>
+                            </div>
+                            
+                            <div className="text-left mt-8">
+                              {formData.signatureImage && (
+                                <div className="mb-4">
+                                  <img 
+                                    src={formData.signatureImage} 
+                                    alt="Signature" 
+                                    className="max-w-32 h-auto mx-auto"
+                                  />
+                                </div>
+                              )}
+                              <p className="font-semibold">{formData.signatoryName || '[Signatory Name]'}</p>
+                              <p>{formData.signatoryTitle}</p>
+                              <p>{formData.contactEmail}</p>
+                              <p>{formData.website}</p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {activeTemplate === 'experience' && (
+                          <div>
+                            <div className="text-center mb-6">
+                              <h1 className="text-xl font-bold mb-2">TO WHOM IT MAY CONCERN</h1>
+                            </div>
+                            
+                            <div className="mb-4">
+                              <p className="mb-4">
+                                This is to certify that {formData.employeeName ? `Mr./Ms. ${formData.employeeName}` : '[Employee Name]'} has been working with {formData.companyName} as {formData.position} since {formData.joiningDate ? formatDate(formData.joiningDate) : '[Joining Date]'}.
+                              </p>
+                              
+                              <p className="mb-4">
+                                During {formData.employeeName ? 'his/her' : 'their'} tenure, {formData.employeeName ? 'he/she' : 'they'} has shown dedication, professionalism, and excellent work performance.
+                              </p>
+                              
+                              <p className="mb-4">
+                                We wish {formData.employeeName ? 'him/her' : 'them'} all the best for future endeavors.
+                              </p>
+                            </div>
+                            
+                            <div className="mt-8">
+                              {formData.signatureImage && (
+                                <div className="text-center mb-4">
+                                  <img 
+                                    src={formData.signatureImage} 
+                                    alt="Signature" 
+                                    className="max-w-32 h-auto mx-auto"
+                                  />
+                                </div>
+                              )}
+                              <p className="font-semibold">{formData.signatoryName || '[Signatory Name]'}</p>
+                              <p>{formData.signatoryTitle}</p>
+                              <p>{formData.companyName}</p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {activeTemplate === 'salary' && (
+                          <div>
+                            <div className="text-center mb-6">
+                              <h1 className="text-xl font-bold mb-2">SALARY CERTIFICATE</h1>
+                            </div>
+                            
+                            <div className="mb-4">
+                              <p className="mb-4">
+                                This is to certify that {formData.employeeName ? `Mr./Ms. ${formData.employeeName}` : '[Employee Name]'} is currently employed with {formData.companyName} as {formData.position}.
+                              </p>
+                              
+                              <p className="mb-4">
+                                {formData.employeeName ? 'His/Her' : 'Their'} current monthly salary is {formData.currency} {formData.salary || '[Salary Amount]'}.
+                              </p>
+                              
+                              <p className="mb-4">
+                                This certificate is being issued upon {formData.employeeName ? 'his/her' : 'their'} request.
+                              </p>
+                            </div>
+                            
+                            <div className="mt-8">
+                              {formData.signatureImage && (
+                                <div className="text-center mb-4">
+                                  <img 
+                                    src={formData.signatureImage} 
+                                    alt="Signature" 
+                                    className="max-w-32 h-auto mx-auto"
+                                  />
+                                </div>
+                              )}
+                              <p className="font-semibold">{formData.signatoryName || '[Signatory Name]'}</p>
+                              <p>{formData.signatoryTitle}</p>
+                              <p>{formData.companyName}</p>
+                              <p>{formData.contactEmail}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Background Image Status */}
+                {!selectedBackgroundImage && (
+                  <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-sm text-yellow-800">
+                      ⚠️ No background image uploaded. Upload a background image to see the full preview.
+                    </p>
+                  </div>
+                )}
 
                 <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                   <h4 className="font-semibold text-blue-800 mb-2">Instructions:</h4>
