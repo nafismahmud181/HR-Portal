@@ -353,7 +353,7 @@ ${formData.contactEmail}`;
             {/* Form Section */}
 
             {/* Background Image Upload Section */}
-            <div className="mb-8 bg-white rounded-xl shadow-lg p-6">
+            {/* <div className="mb-8 bg-white rounded-xl shadow-lg p-6">
               <h2 className="text-xl font-semibold mb-4 text-gray-800">Upload Background Image</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div className="md:col-span-2">
@@ -397,12 +397,50 @@ ${formData.contactEmail}`;
               <p className="text-sm text-gray-600 mt-2">
                 Upload your PNG background image (A4 format recommended). The text will be overlaid on top.
               </p>
-          </div>
+          </div> */}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Form Fields - Left Sidebar */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-xl shadow-lg p-6">
+                {/* Background Image Upload Section */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold mb-4 text-gray-800">Background Image</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Upload Background Image
+                      </label>
+                      <input
+                        type="file"
+                        accept=".png,.jpg,.jpeg"
+                        onChange={handleBackgroundImageUpload}
+                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      />
+                      <p className="text-xs text-gray-600 mt-1">
+                        PNG, JPG, JPEG formats (A4 format recommended)
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">PDF Quality</label>
+                      <select
+                        value={qualityLevel}
+                        onChange={(e) => setQualityLevel(e.target.value as QualityLevel)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="standard">Standard (Fast)</option>
+                        <option value="high">High Quality</option>
+                        <option value="ultra">Ultra HD</option>
+                      </select>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {qualityLevel === 'standard' ? 'Standard (2x)' : 
+                         qualityLevel === 'high' ? 'High (4x)' : 'Ultra HD (6x)'} - Higher quality = larger file size
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Form Fields */}
                 <div className="mb-8">
                   <h3 className="text-lg font-semibold mb-4 text-gray-800">Letter Details</h3>
