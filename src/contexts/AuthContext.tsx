@@ -6,9 +6,13 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail,
   updateProfile,
-  type User
+  type User,
+  type Auth
 } from 'firebase/auth';
 import { auth } from '../firebase/config';
+
+// Type assertion to ensure auth is properly typed
+const typedAuth = auth as Auth;
 
 interface AuthContextType {
   currentUser: User | null;
@@ -38,7 +42,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
 
   async function signup(email: string, password: string, name: string) {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(typedAuth, email, password);
     
     // Update the user profile with the display name
     if (userCredential.user) {
@@ -49,19 +53,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   async function login(email: string, password: string) {
-    await signInWithEmailAndPassword(auth, email, password);
+    await signInWithEmailAndPassword(typedAuth, email, password);
   }
 
   async function logout() {
-    await signOut(auth);
+    await signOut(typedAuth);
   }
 
   async function resetPassword(email: string) {
-    await sendPasswordResetEmail(auth, email);
+    await sendPasswordResetEmail(typedAuth, email);
   }
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(typedAuth, (user) => {
       setCurrentUser(user);
       setLoading(false);
     });

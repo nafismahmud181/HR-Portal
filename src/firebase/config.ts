@@ -1,5 +1,5 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { initializeApp, type FirebaseApp } from 'firebase/app';
+import { getAuth, type Auth } from 'firebase/auth';
 
 // Your Firebase configuration object
 // Replace these values with your actual Firebase project configuration
@@ -13,8 +13,8 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-let app;
-let auth;
+let app: FirebaseApp | undefined;
+let auth: Auth;
 
 try {
   app = initializeApp(firebaseConfig);
@@ -31,7 +31,7 @@ try {
     signOut: async () => { throw new Error('Firebase not configured'); },
     sendPasswordResetEmail: async () => { throw new Error('Firebase not configured'); },
     updateProfile: async () => { throw new Error('Firebase not configured'); }
-  } as any;
+  } as unknown as Auth;
 }
 
 export { auth };
