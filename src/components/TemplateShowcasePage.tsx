@@ -428,8 +428,24 @@ const TemplateShowcasePage = () => {
   };
 
   const handleTemplateClick = (templateId: string) => {
-    // For now, just show an alert. Later this will navigate to template creation
-    alert(`Template "${templateId}" will be implemented soon!`);
+    // Check if template is available and navigate accordingly
+    switch (templateId) {
+      case 'offer-letter':
+        // LOE template - navigate to portal with type=loe
+        navigate('/portal?type=loe');
+        break;
+      case 'experience-certificate':
+        // Experience template - navigate to portal with type=experience
+        navigate('/portal?type=experience');
+        break;
+      case 'salary-certificate':
+        // Salary template - navigate to portal with type=salary
+        navigate('/portal?type=salary');
+        break;
+      default:
+        // For other templates, show coming soon message
+        alert(`Template "${templateId}" will be implemented soon!`);
+    }
   };
 
   return (
@@ -460,29 +476,15 @@ const TemplateShowcasePage = () => {
         {/* Main Content */}
         <div className="p-6">
           <div className="max-w-7xl mx-auto">
-            {/* Header */}
-            <div className="text-center mb-12">
-              <h1 className="text-4xl font-bold text-gray-800 mb-4">
-                HR Template Library
-              </h1>
-              <p className="text-xl text-gray-600 mb-6">
-                Comprehensive collection of professional HR documents and templates
-              </p>
-              <div className="flex justify-center space-x-4 text-sm">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span>Available</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                  <span>Coming Soon</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
-                  <span>Planned</span>
-                </div>
-              </div>
-            </div>
+                         Header
+             <div className="text-center mb-12">
+               <h1 className="text-4xl font-bold text-gray-800 mb-4">
+                 HR Template Library
+               </h1>
+               <p className="text-xl text-gray-600 mb-6">
+                 Comprehensive collection of professional HR documents and templates
+               </p>
+             </div>
 
             {/* Template Categories */}
             <div className="space-y-12">
@@ -507,13 +509,14 @@ const TemplateShowcasePage = () => {
                   <div className="p-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {category.templates.map((template) => (
-                        <div
-                          key={template.id}
-                          onClick={() => handleTemplateClick(template.id)}
-                          className={`bg-white border-2 border-gray-200 rounded-lg p-6 hover:shadow-lg transition-all duration-200 cursor-pointer ${
-                            template.status === 'available' ? 'hover:border-blue-300' : 'opacity-75'
-                          }`}
-                        >
+                                                 <div
+                           key={template.id}
+                           className={`bg-white border-2 rounded-lg p-6 transition-all duration-200 ${
+                             template.status === 'available' 
+                               ? 'border-blue-200 hover:border-blue-400 hover:shadow-lg cursor-pointer' 
+                               : 'border-gray-200 opacity-75 cursor-default'
+                           }`}
+                         >
                           {/* Template Header */}
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center space-x-3">
@@ -533,15 +536,28 @@ const TemplateShowcasePage = () => {
                             {template.description}
                           </p>
 
-                          {/* Template Status and Priority */}
-                          <div className="flex items-center justify-between">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(template.status)}`}>
-                              {template.status.replace('-', ' ').toUpperCase()}
-                            </span>
-                            <span className={`text-xs font-medium ${getPriorityColor(template.priority)}`}>
-                              {template.priority.toUpperCase()} PRIORITY
-                            </span>
-                          </div>
+                                                     {/* Template Status and Priority */}
+                           <div className="flex items-center justify-between mb-4">
+                             <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(template.status)}`}>
+                               {template.status.replace('-', ' ').toUpperCase()}
+                             </span>
+                             <span className={`text-xs font-medium ${getPriorityColor(template.priority)}`}>
+                               {template.priority.toUpperCase()} PRIORITY
+                             </span>
+                           </div>
+
+                           {/* Action Button for Available Templates */}
+                           {template.status === 'available' && (
+                             <button
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 handleTemplateClick(template.id);
+                               }}
+                               className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                             >
+                               Create Document
+                             </button>
+                           )}
                         </div>
                       ))}
                     </div>
@@ -550,31 +566,54 @@ const TemplateShowcasePage = () => {
               ))}
             </div>
 
-            {/* Footer */}
-            <div className="mt-12 text-center">
-              <div className="bg-white rounded-xl shadow-lg p-8">
-                <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                  Ready to Get Started?
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  Choose from our comprehensive collection of HR templates. Available templates are ready to use, while others are coming soon!
-                </p>
-                <div className="flex justify-center space-x-4">
-                  <button
-                    onClick={() => navigate('/documents')}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                  >
-                    View Available Templates
-                  </button>
-                  <button
-                    onClick={handleBackToHome}
-                    className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium"
-                  >
-                    Back to Home
-                  </button>
-                </div>
-              </div>
-            </div>
+                         {/* Footer */}
+             <div className="mt-12 text-center">
+               <div className="bg-white rounded-xl shadow-lg p-8">
+                 <h3 className="text-2xl font-bold text-gray-800 mb-4">
+                   Ready to Get Started?
+                 </h3>
+                 <p className="text-gray-600 mb-6">
+                   Choose from our comprehensive collection of HR templates. Available templates are ready to use, while others are coming soon!
+                 </p>
+                 
+                 {/* Available Templates Info */}
+                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left max-w-2xl mx-auto">
+                   <h4 className="font-semibold text-blue-800 mb-2">✨ Available Templates:</h4>
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                     <div className="flex items-center space-x-2">
+                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                       <span className="text-blue-700">Letter of Employment (LOE)</span>
+                     </div>
+                     <div className="flex items-center space-x-2">
+                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                       <span className="text-blue-700">Experience Certificate</span>
+                     </div>
+                     <div className="flex items-center space-x-2">
+                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                       <span className="text-blue-700">Salary Certificate</span>
+                     </div>
+                   </div>
+                   <p className="text-blue-600 text-xs mt-2">
+                     Click "Create Document" on any available template to start generating professional HR documents!
+                   </p>
+                 </div>
+                 
+                 <div className="flex justify-center space-x-4">
+                   <button
+                     onClick={() => navigate('/documents')}
+                     className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                   >
+                     View Available Templates
+                   </button>
+                   <button
+                     onClick={handleBackToHome}
+                     className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium"
+                   >
+                     Back to Home
+                   </button>
+                 </div>
+               </div>
+             </div>
           </div>
         </div>
       </div>
