@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileText, Download, User, Calendar, DollarSign, PenTool, Building, Home } from 'lucide-react';
 import { generatePDF } from './PDFGenerator';
 
@@ -53,6 +53,16 @@ const HRPortal = () => {
     contactEmail: 'info@inteliweave.com.bd',
     website: 'www.inteliweave.com.bd'
   });
+
+  // Read document type from URL parameters and pre-select template
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const documentType = urlParams.get('type');
+    
+    if (documentType && ['loe', 'experience', 'salary'].includes(documentType)) {
+      setActiveTemplate(documentType as TemplateKey);
+    }
+  }, []);
 
   const templates: Record<TemplateKey, Template> = {
     loe: {

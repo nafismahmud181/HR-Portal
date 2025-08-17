@@ -2,8 +2,8 @@ import { FileText, Download, DollarSign, PenTool, Building, ArrowRight, CheckCir
 
 const LandingPage = () => {
   const handleGetStarted = () => {
-    // Navigate to the main HR Portal
-    window.location.href = '/portal';
+    // Navigate to the document selection page
+    window.location.href = '/documents';
   };
 
   const features = [
