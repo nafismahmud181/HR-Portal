@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Download, User, Calendar, DollarSign, PenTool, Building, Home } from 'lucide-react';
+import { FileText, Download, User, Calendar, DollarSign, PenTool, Building } from 'lucide-react';
 import { generatePDF } from './PDFGenerator';
 import SideNavbar from './SideNavbar';
 import type { TemplateKey } from './templates/TemplateRegistry';
@@ -256,13 +256,6 @@ ${formData.contactEmail}`;
               <div className="flex items-center space-x-3">
                 <span className="text-xl font-bold text-gray-900">Document Generator</span>
               </div>
-              <a
-                href="/"
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <Home className="w-5 h-5" />
-                <span>Back to Home</span>
-              </a>
             </div>
           </div>
         </nav>
