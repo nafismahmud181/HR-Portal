@@ -55,8 +55,11 @@ This is to certify that ${data.employeeName ? `Mr./Ms. ${data.employeeName}` : '
 If you have any questions regarding ${data.employeeName ? `${data.employeeName}'s` : 'the employee\'s'} employment, please contact our office at ${data.contactPhone} or ${data.contactEmail}.
 
 ${data.signatoryName || '[Signatory Name]'}
+
 ${data.signatoryTitle}
+
 ${data.contactEmail}
+
 ${data.website}`;
   }
 
@@ -70,7 +73,9 @@ During ${data.employeeName ? 'his/her' : 'their'} tenure, ${data.employeeName ? 
 We wish ${data.employeeName ? 'him/her' : 'them'} all the best for future endeavors.
 
 ${data.signatoryName || '[Signatory Name]'}
+
 ${data.signatoryTitle}
+
 ${data.companyName}`;
   }
 
@@ -84,8 +89,11 @@ ${data.employeeName ? 'His/Her' : 'Their'} current monthly salary is ${data.curr
 This certificate is being issued upon ${data.employeeName ? 'his/her' : 'their'} request.
 
 ${data.signatoryName || '[Signatory Name]'}
+
 ${data.signatoryTitle}
+
 ${data.companyName}
+
 ${data.contactEmail}`;
   }
 
