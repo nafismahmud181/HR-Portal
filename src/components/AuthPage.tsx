@@ -309,16 +309,6 @@ const AuthPage = () => {
             </form>
           )}
         </div>
-
-        {/* Back to Home */}
-        <div className="text-center mt-6">
-          <button
-            onClick={() => navigate('/')}
-            className="text-gray-600 hover:text-gray-800 font-medium transition-colors"
-          >
-            ← Back to Home
-          </button>
-        </div>
       </div>
     </div>
   );
