@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FileText, Download, User, Calendar, DollarSign, PenTool, Building } from 'lucide-react';
+import { generatePDF } from './PDFGenerator';
 
 // Define types for better type safety
 type TemplateKey = 'loe' | 'experience' | 'salary';
@@ -8,6 +9,7 @@ interface Template {
   name: string;
   icon: React.ReactElement;
   fields: (keyof FormData)[];
+  backgroundImage: string;
 }
 
 interface FormData {
@@ -33,6 +35,8 @@ interface InputField {
 
 const HRPortal = () => {
   const [activeTemplate, setActiveTemplate] = useState<TemplateKey>('loe');
+  const [selectedBackgroundImage, setSelectedBackgroundImage] = useState<string>('');
+  const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     employeeName: '',
     joiningDate: '',
@@ -51,17 +55,20 @@ const HRPortal = () => {
     loe: {
       name: 'Letter of Employment (LOE)',
       icon: <FileText className="w-5 h-5" />,
-      fields: ['employeeName', 'joiningDate', 'salary', 'currency', 'position']
+      fields: ['employeeName', 'joiningDate', 'salary', 'currency', 'position'],
+      backgroundImage: '/templates/loe_background.png'
     },
     experience: {
       name: 'Experience Certificate',
       icon: <FileText className="w-5 h-5" />,
-      fields: ['employeeName', 'joiningDate', 'position']
+      fields: ['employeeName', 'joiningDate', 'position'],
+      backgroundImage: '/templates/experience_background.png'
     },
     salary: {
       name: 'Salary Certificate',
       icon: <DollarSign className="w-5 h-5" />,
-      fields: ['employeeName', 'salary', 'currency', 'position']
+      fields: ['employeeName', 'salary', 'currency', 'position'],
+      backgroundImage: '/templates/salary_background.png'
     }
   };
 
@@ -132,6 +139,31 @@ ${formData.contactEmail}`;
       case 'experience': return generateExperienceCert();
       case 'salary': return generateSalaryCert();
       default: return generateLOE();
+    }
+  };
+
+  const handleBackgroundImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Store the file path or handle the upload
+      setSelectedBackgroundImage(URL.createObjectURL(file));
+    }
+  };
+
+  const downloadPDFWithBackground = async (): Promise<void> => {
+    if (!selectedBackgroundImage) {
+      alert('Please upload a background image first');
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      await generatePDF(selectedBackgroundImage, formData, activeTemplate);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error generating PDF. Please try again.');
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -221,7 +253,31 @@ ${formData.contactEmail}`;
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">HR Portal</h1>
-          <p className="text-gray-600">Generate professional employment letters instantly</p>
+          <p className="text-gray-600">Generate professional employment letters with custom backgrounds</p>
+        </div>
+
+        {/* Background Image Upload Section */}
+        <div className="mb-8 bg-white rounded-xl shadow-lg p-6">
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">Upload Background Image</h2>
+          <div className="flex items-center space-x-4">
+            <input
+              type="file"
+              accept=".png,.jpg,.jpeg"
+              onChange={handleBackgroundImageUpload}
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            />
+            <button
+              onClick={downloadPDFWithBackground}
+              disabled={!selectedBackgroundImage || isGenerating}
+              className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              <Download className="w-4 h-4" />
+              <span>{isGenerating ? 'Generating...' : 'Generate PDF'}</span>
+            </button>
+          </div>
+          <p className="text-sm text-gray-600 mt-2">
+            Upload your PNG background image (A4 format recommended). The text will be overlaid on top.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -309,13 +365,23 @@ ${formData.contactEmail}`;
             <div className="bg-white rounded-xl shadow-lg p-8">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold text-gray-800">Letter Preview</h2>
-                <button
-                  onClick={downloadLetter}
-                  className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Download PDF</span>
-                </button>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={downloadPDFWithBackground}
+                    disabled={!selectedBackgroundImage || isGenerating}
+                    className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>{isGenerating ? 'Generating...' : 'PDF with Background'}</span>
+                  </button>
+                  <button
+                    onClick={downloadLetter}
+                    className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Simple PDF</span>
+                  </button>
+                </div>
               </div>
 
               <div className="bg-gray-50 p-6 rounded-lg border-2 border-dashed border-gray-300">
@@ -327,10 +393,11 @@ ${formData.contactEmail}`;
               <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                 <h4 className="font-semibold text-blue-800 mb-2">Instructions:</h4>
                 <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• Upload your PNG background image (A4 format recommended)</li>
                   <li>• Fill in the required fields in the left panel</li>
                   <li>• Preview updates automatically as you type</li>
-                  <li>• Click "Download PDF" to save as a PDF file</li>
-                  <li>• You can copy the content directly from the preview</li>
+                  <li>• Click "PDF with Background" to create a professional document</li>
+                  <li>• Or click "Simple PDF" for a basic version</li>
                 </ul>
               </div>
             </div>
