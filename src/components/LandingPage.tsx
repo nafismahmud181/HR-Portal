@@ -97,9 +97,6 @@ const LandingPage = () => {
               <span>Start Creating Documents</span>
               <ArrowRight className="w-5 h-5" />
             </button>
-            <button className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-lg hover:border-gray-400 transition-colors text-lg font-semibold">
-              Watch Demo
-            </button>
           </div>
         </div>
       </section>
