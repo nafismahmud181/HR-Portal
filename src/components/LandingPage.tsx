@@ -100,6 +100,13 @@ const LandingPage = () => {
               <span>Start Creating Documents</span>
               <ArrowRight className="w-5 h-5" />
             </button>
+            <button
+              onClick={() => navigate('/templates')}
+              className="bg-green-600 text-white px-8 py-4 rounded-lg hover:bg-green-700 transition-colors text-lg font-semibold flex items-center justify-center space-x-2"
+            >
+              <span>View All Templates</span>
+              <ArrowRight className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </section>

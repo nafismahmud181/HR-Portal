@@ -16,6 +16,13 @@ const SideNavbar = ({ currentPage }: SideNavbarProps) => {
       isActive: currentPage === 'documents'
     },
     {
+      id: 'templates',
+      label: 'Templates',
+      icon: <FileText className="w-5 h-5 text-gray-600" />,
+      href: '/templates',
+      isActive: currentPage === 'templates'
+    },
+    {
       id: 'portal',
       label: 'Portal',
       icon: <Pen className="w-5 h-5 text-gray-600" />,
