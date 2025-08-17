@@ -55,6 +55,7 @@ This is to certify that ${data.employeeName ? `Mr./Ms. ${data.employeeName}` : '
 
 If you have any questions regarding ${data.employeeName ? `${data.employeeName}'s` : 'the employee\'s'} employment, please contact our office at ${data.contactPhone} or ${data.contactEmail}.
 
+Signature Image
 
 ${data.signatoryName || '[Signatory Name]'}
 
@@ -73,6 +74,8 @@ This is to certify that ${data.employeeName ? `Mr./Ms. ${data.employeeName}` : '
 During ${data.employeeName ? 'his/her' : 'their'} tenure, ${data.employeeName ? 'he/she' : 'they'} has shown dedication, professionalism, and excellent work performance.
 
 We wish ${data.employeeName ? 'him/her' : 'them'} all the best for future endeavors.
+
+Signature Image
 
 ${data.signatoryName || '[Signatory Name]'}
 
