@@ -1,5 +1,6 @@
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import type { TemplateKey } from './templates/TemplateRegistry';
 
 export interface TemplateData {
   employeeName: string;
@@ -102,7 +103,7 @@ ${data.companyName}
 ${data.contactEmail}`;
   }
 
-  private getGeneratedContent(data: TemplateData, documentType: 'loe' | 'experience' | 'salary'): string {
+  private getGeneratedContent(data: TemplateData, documentType: TemplateKey): string {
     switch (documentType) {
       case 'loe': return this.generateLOE(data);
       case 'experience': return this.generateExperienceCert(data);
@@ -147,7 +148,7 @@ ${data.contactEmail}`;
 
   async generatePDF(
     data: TemplateData,
-    documentType: 'loe' | 'experience' | 'salary',
+    documentType: TemplateKey,
     filename: string,
     quality: QualityLevel = 'high'
   ): Promise<void> {
@@ -251,7 +252,7 @@ ${data.contactEmail}`;
   async generateFromTemplate(
     imagePath: string,
     data: TemplateData,
-    documentType: 'loe' | 'experience' | 'salary',
+    documentType: TemplateKey,
     quality: QualityLevel = 'high'
   ): Promise<void> {
     await this.loadBackgroundImage(imagePath);
@@ -279,7 +280,7 @@ ${data.contactEmail}`;
 export const generatePDF = async (
   imagePath: string,
   data: TemplateData,
-  documentType: 'loe' | 'experience' | 'salary',
+  documentType: TemplateKey,
   quality: QualityLevel = 'high'
 ): Promise<void> => {
   const generator = new PDFGenerator();
