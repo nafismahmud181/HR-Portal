@@ -308,7 +308,43 @@ ${formData.contactEmail}`;
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-800 mb-2">Document Generator</h1>
             <p className="text-gray-600">Create professional employment letters with custom backgrounds</p>
+            
+            {/* Current Template Indicator */}
+            <div className="mt-4 inline-flex items-center space-x-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full">
+              <FileText className="w-4 h-4" />
+              <span className="font-medium">
+                {templates[activeTemplate].name}
+              </span>
+            </div>
           </div>
+
+          {/* Template Selection - Hidden since users select from document selection page */}
+          {/* <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Select Template</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {Object.entries(templates).map(([key, template]) => (
+                <button
+                  key={key}
+                  onClick={() => setActiveTemplate(key as TemplateKey)}
+                  className={`p-4 rounded-lg border-2 transition-all ${
+                    activeTemplate === key
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    {template.icon}
+                    <div className="text-left">
+                      <div className="font-semibold">{template.label}</div>
+                      <div className="text-sm opacity-75">{template.description}</div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div> */}
+
+          {/* Form Section */}
 
           {/* Background Image Upload Section */}
           <div className="mb-8 bg-white rounded-xl shadow-lg p-6">
@@ -358,29 +394,11 @@ ${formData.contactEmail}`;
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Template Selection */}
+            {/* Form Fields - Left Sidebar */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-xl shadow-lg p-6">
-                <h2 className="text-xl font-semibold mb-4 text-gray-800">Select Template</h2>
-                <div className="space-y-3">
-                  {Object.entries(templates).map(([key, template]) => (
-                    <button
-                      key={key}
-                      onClick={() => setActiveTemplate(key as TemplateKey)}
-                      className={`w-full p-4 rounded-lg border-2 transition-all duration-200 flex items-center space-x-3 ${
-                        activeTemplate === key
-                          ? 'border-blue-500 bg-blue-50 text-blue-700'
-                          : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                      }`}
-                    >
-                      {template.icon}
-                      <span className="font-medium">{template.name}</span>
-                    </button>
-                  ))}
-                </div>
-
                 {/* Form Fields */}
-                <div className="mt-8">
+                <div className="mb-8">
                   <h3 className="text-lg font-semibold mb-4 text-gray-800">Letter Details</h3>
                   <div className="space-y-4">
                     {templates[activeTemplate].fields.map(field => {
@@ -399,22 +417,22 @@ ${formData.contactEmail}`;
                               onChange={(e) => handleInputChange(field, e.target.value)}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
-                              {fieldConfig.options?.map(option => (
-                                <option key={option} value={option}>{option}</option>
-                              ))}
-                            </select>
-                          ) : (
-                            <input
-                              type={fieldConfig.type}
-                              value={formData[field]}
-                              onChange={(e) => handleInputChange(field, e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              placeholder={`Enter ${fieldConfig.label.toLowerCase()}`}
-                            />
-                          )}
-                        </div>
-                      );
-                    })}
+                                {fieldConfig.options?.map(option => (
+                              <option key={option} value={option}>{option}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            type={fieldConfig.type}
+                            value={formData[field]}
+                            onChange={(e) => handleInputChange(field, e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder={`Enter ${fieldConfig.label.toLowerCase()}`}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
 
                     {/* Signature Image Upload */}
                     <div>
@@ -454,7 +472,7 @@ ${formData.contactEmail}`;
                       />
                     </div>
 
-                     
+                       
                   </div>
                 </div>
               </div>
