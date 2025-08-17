@@ -1,9 +1,12 @@
 import { FileText, Download, DollarSign, PenTool, Building, ArrowRight, CheckCircle, Star } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const LandingPage = () => {
+  const navigate = useNavigate();
+
   const handleGetStarted = () => {
-    // Navigate to the document selection page
-    window.location.href = '/documents';
+    // Navigate to the document selection page using React Router
+    navigate('/documents');
   };
 
   const features = [

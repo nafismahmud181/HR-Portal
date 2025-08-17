@@ -1,10 +1,12 @@
 import { FileText, Home, Settings, HelpCircle, User, LogOut } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface SideNavbarProps {
   currentPage: string;
 }
 
 const SideNavbar = ({ currentPage }: SideNavbarProps) => {
+
   const navItems = [
     {
       id: 'home',
@@ -67,9 +69,9 @@ const SideNavbar = ({ currentPage }: SideNavbarProps) => {
       <nav className="p-4">
         <div className="space-y-2">
           {navItems.map((item) => (
-            <a
+            <Link
               key={item.id}
-              href={item.href}
+              to={item.href}
               className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                 item.isActive
                   ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
@@ -78,7 +80,7 @@ const SideNavbar = ({ currentPage }: SideNavbarProps) => {
             >
               {item.icon}
               <span className="font-medium">{item.label}</span>
-            </a>
+            </Link>
           ))}
         </div>
       </nav>

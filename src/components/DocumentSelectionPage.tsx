@@ -1,14 +1,17 @@
 import { FileText, Download, DollarSign, PenTool, Building, ArrowRight, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import SideNavbar from './SideNavbar';
 
 const DocumentSelectionPage = () => {
+  const navigate = useNavigate();
+
   const handleDocumentSelect = (documentType: string) => {
     // Navigate to the main HR Portal with the selected document type
-    window.location.href = `/portal?type=${documentType}`;
+    navigate(`/portal?type=${documentType}`);
   };
 
   const handleBackToHome = () => {
-    window.location.href = '/';
+    navigate('/');
   };
 
   const documentTypes = [
