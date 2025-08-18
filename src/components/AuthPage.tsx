@@ -30,12 +30,12 @@ const AuthPage = () => {
     agreeToTerms: false
   });
 
-  // Redirect if user is already authenticated
-  useEffect(() => {
-    if (!loading && currentUser) {
-      navigate('/documents', { replace: true });
-    }
-  }, [currentUser, loading, navigate]);
+           // Redirect if user is already authenticated
+         useEffect(() => {
+           if (!loading && currentUser) {
+             navigate('/templates', { replace: true });
+           }
+         }, [currentUser, loading, navigate]);
 
   // Show loading spinner while checking authentication
   if (loading) {
@@ -68,7 +68,7 @@ const AuthPage = () => {
     
     try {
       await login(formData.email, formData.password);
-      navigate('/documents');
+      navigate('/templates');
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to sign in';
       setError(errorMessage);

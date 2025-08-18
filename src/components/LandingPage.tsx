@@ -9,7 +9,7 @@ const LandingPage = () => {
   const handleGetStarted = () => {
     // Check if user is authenticated, if not redirect to auth page
     if (currentUser) {
-      navigate('/documents');
+      navigate('/templates');
     } else {
       navigate('/auth');
     }
