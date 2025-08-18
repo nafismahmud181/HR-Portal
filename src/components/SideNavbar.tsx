@@ -1,4 +1,4 @@
-import { FileText, Pen, Settings, HelpCircle, User, LogOut, LayoutTemplate, Users } from 'lucide-react';
+import { FileText, Pen, Settings, HelpCircle, User, LogOut, LayoutTemplate, Users, Calendar } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
@@ -41,6 +41,13 @@ const SideNavbar = ({ currentPage }: SideNavbarProps) => {
       icon: <Users className="w-5 h-5 text-gray-600" />,
       href: '/employees',
       isActive: currentPage === 'employees'
+    },
+    {
+      id: 'leave',
+      label: 'Leave Management',
+      icon: <Calendar className="w-5 h-5 text-gray-600" />,
+      href: '/leave',
+      isActive: currentPage === 'leave'
     },
     {
       id: 'portal',

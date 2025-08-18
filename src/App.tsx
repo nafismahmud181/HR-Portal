@@ -5,6 +5,7 @@ import HRPortal from './components/HRPortal';
 import AuthPage from './components/AuthPage';
 import DocumentsPage from './components/DocumentsPage';
 import EmployeeDirectory from './components/EmployeeDirectory';
+import LeaveManagementPage from './components/LeaveManagementPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import TitleManager from './components/TitleManager';
@@ -27,6 +28,11 @@ function App() {
             <Route path="/employees" element={
               <ProtectedRoute>
                 <EmployeeDirectory />
+              </ProtectedRoute>
+            } />
+            <Route path="/leave" element={
+              <ProtectedRoute>
+                <LeaveManagementPage />
               </ProtectedRoute>
             } />
             <Route path="/templates" element={
