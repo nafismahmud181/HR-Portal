@@ -215,7 +215,7 @@ class LeaveService {
     }
   }
 
-  async approveLeaveRequest(requestId: string, managerId: string): Promise<void> {
+  async approveLeaveRequest(requestId: string, managerId: string, managerName?: string): Promise<void> {
     try {
       const request = await this.getLeaveRequestById(requestId);
       if (!request) {
@@ -224,7 +224,7 @@ class LeaveService {
 
       await this.updateLeaveRequest(requestId, {
         status: 'Approved',
-        approvedBy: managerId,
+        approvedBy: managerName ?? managerId,
         approvedAt: Timestamp.now()
       });
 
@@ -254,11 +254,11 @@ class LeaveService {
     }
   }
 
-  async rejectLeaveRequest(requestId: string, managerId: string, rejectionReason: string): Promise<void> {
+  async rejectLeaveRequest(requestId: string, managerId: string, rejectionReason: string, managerName?: string): Promise<void> {
     try {
       await this.updateLeaveRequest(requestId, {
         status: 'Rejected',
-        approvedBy: managerId,
+        approvedBy: managerName ?? managerId,
         approvedAt: Timestamp.now(),
         rejectionReason
       });

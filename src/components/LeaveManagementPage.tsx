@@ -115,7 +115,11 @@ const LeaveManagementPage: React.FC = () => {
   const handleApproveRequest = async (requestId: string) => {
     try {
       if (currentUser) {
-        await leaveService.approveLeaveRequest(requestId, currentUser.uid);
+        await leaveService.approveLeaveRequest(
+          requestId,
+          currentUser.uid,
+          currentUser.displayName || undefined
+        );
         loadData();
       }
     } catch (error) {
@@ -129,7 +133,8 @@ const LeaveManagementPage: React.FC = () => {
         await leaveService.rejectLeaveRequest(
           requestId,
           currentUser.uid,
-          reason
+          reason,
+          currentUser.displayName || undefined
         );
         loadData();
       }
