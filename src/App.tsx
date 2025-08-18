@@ -1,9 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
-import DocumentSelectionPage from './components/DocumentSelectionPage';
 import TemplateShowcasePage from './components/TemplateShowcasePage';
 import HRPortal from './components/HRPortal';
 import AuthPage from './components/AuthPage';
+import DocumentsPage from './components/DocumentsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import './App.css';
@@ -18,7 +18,7 @@ function App() {
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/documents" element={
               <ProtectedRoute>
-                <DocumentSelectionPage />
+                <DocumentsPage />
               </ProtectedRoute>
             } />
             <Route path="/templates" element={

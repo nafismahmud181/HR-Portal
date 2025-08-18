@@ -123,6 +123,26 @@ npm run build
 npm run preview
 ```
 
+## ⚠️ Troubleshooting
+
+### Common Issues
+
+**"Failed to load documents" Error:**
+- **Firebase Configuration**: Ensure your `.env.local` file is properly configured
+- **See [Firebase Configuration Fix Guide](FIREBASE_CONFIGURATION_FIX.md)** for detailed steps
+- **Verify Firebase Services**: Make sure Authentication, Firestore, and Storage are enabled
+- **Check Security Rules**: Ensure Firestore and Storage rules are properly configured
+
+**Authentication Issues:**
+- Check if Firebase Authentication is enabled
+- Verify email/password sign-in method is active
+- Check browser console for specific error messages
+
+**PDF Generation Issues:**
+- Ensure background images are in PNG, JPG, or JPEG format
+- Check if all required form fields are filled
+- Verify Firebase Storage is properly configured
+
 ## 📁 Project Structure
 
 ```

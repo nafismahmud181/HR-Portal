@@ -6,13 +6,22 @@ import { getStorage, type FirebaseStorage } from 'firebase/storage';
 // Your Firebase configuration object
 // Replace these values with your actual Firebase project configuration
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'your_api_key_here',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'your_project_id.firebaseapp.com',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'your_project_id',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'your_project_id.appspot.com',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || 'your_messaging_sender_id',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || 'your_app_id'
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
+
+// Check if all required Firebase config values are present
+const requiredConfigKeys = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
+const missingConfigKeys = requiredConfigKeys.filter(key => !firebaseConfig[key as keyof typeof firebaseConfig]);
+
+if (missingConfigKeys.length > 0) {
+  console.error('Missing Firebase configuration values:', missingConfigKeys);
+  console.error('Please create a .env.local file with your Firebase configuration. See FIREBASE_SETUP.md for details.');
+}
 
 // Initialize Firebase
 let app: FirebaseApp | undefined;
