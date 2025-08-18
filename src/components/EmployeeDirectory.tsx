@@ -311,9 +311,15 @@ const EmployeeDirectory: React.FC = () => {
                   <div key={employee.id} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
                     {/* Avatar */}
                     <div className="flex justify-center mb-4">
-                      <div className={`w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold text-gray-700 ${employee.avatarColor || 'bg-blue-200'}`}>
-                        {getInitials(employee.firstName, employee.lastName)}
-                      </div>
+                      {employee.imageUrl ? (
+                        <div className="w-16 h-16 rounded-full overflow-hidden border-4 border-gray-200 shadow-md">
+                          <img src={employee.imageUrl} alt={`${employee.firstName} ${employee.lastName}`} className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className={`w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold text-gray-700 ${employee.avatarColor || 'bg-blue-200'}`}>
+                          {getInitials(employee.firstName, employee.lastName)}
+                        </div>
+                      )}
                     </div>
 
                     {/* Employee Info */}

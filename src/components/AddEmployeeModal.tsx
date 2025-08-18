@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { X, User, Mail, Phone, Building, Briefcase, Calendar, DollarSign, MapPin } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { X, User, Mail, Phone, Building, Briefcase, Calendar, DollarSign, MapPin, Upload, Camera, X as CloseIcon } from 'lucide-react';
 import { employeeService } from '../services/employeeService';
+import { storage } from '../firebase/config';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 interface AddEmployeeModalProps {
   isOpen: boolean;
@@ -23,6 +25,9 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
     location: ''
   });
 
+  const [employeeImage, setEmployeeImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,6 +48,37 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
     setError(null);
   };
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file (JPG, PNG, GIF)');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Image file size must be less than 5MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setEmployeeImage(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+      setError(null);
+    }
+  };
+
+  const removeImage = () => {
+    setEmployeeImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -55,11 +91,26 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
     setError(null);
 
     try {
-      await employeeService.addEmployee(formData);
+      // 1) Create employee record first
+      const employeeId = await employeeService.addEmployee({
+        ...formData
+      });
+
+      // 2) If an image is selected, upload to Storage and save URL
+      if (employeeImage) {
+        // Convert data URL to Blob
+        const blob = await (await fetch(employeeImage)).blob();
+        const storageRef = ref(storage, `employees/${employeeId}/avatar.jpg`);
+        await uploadBytes(storageRef, blob);
+        const downloadUrl = await getDownloadURL(storageRef);
+        await employeeService.updateEmployee(employeeId, { imageUrl: downloadUrl });
+      }
+
       setFormData({
         firstName: '', lastName: '', email: '', phone: '', department: '',
         role: '', status: 'Available', hireDate: '', salary: '', manager: '', location: ''
       });
+      setEmployeeImage(null);
       onEmployeeAdded();
       onClose();
     } catch (error) {
@@ -93,6 +144,60 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
               <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
+
+          {/* Employee Image Upload */}
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Employee Photo</h3>
+            
+            <div className="flex justify-center mb-4">
+              {employeeImage ? (
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-200 shadow-lg">
+                    <img 
+                      src={employeeImage} 
+                      alt="Employee preview" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                    title="Remove image"
+                  >
+                    <CloseIcon className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <div className="w-24 h-24 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
+                  <Camera className="w-8 h-8 text-gray-400" />
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={triggerFileInput}
+                className="flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Upload className="w-4 h-4" />
+                <span>{employeeImage ? 'Change Photo' : 'Upload Photo'}</span>
+              </button>
+              
+              <p className="text-xs text-gray-500">
+                Supported formats: JPG, PNG, GIF (Max size: 5MB)
+              </p>
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+          </div>
 
           {/* Personal Information */}
           <div>

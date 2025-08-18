@@ -26,6 +26,7 @@ export interface Employee {
   manager?: string;
   location: string;
   avatarColor?: string;
+  imageUrl?: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
