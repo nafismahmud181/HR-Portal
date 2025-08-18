@@ -1,4 +1,4 @@
-import { FileText, Pen, Settings, HelpCircle, User, LogOut } from 'lucide-react';
+import { FileText, Pen, Settings, HelpCircle, User, LogOut, LayoutTemplate } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
@@ -22,18 +22,18 @@ const SideNavbar = ({ currentPage }: SideNavbarProps) => {
 
   const navItems = [
     {
+      id: 'templates',
+      label: 'Templates',
+      icon: <LayoutTemplate className="w-5 h-5 text-gray-600" />,
+      href: '/templates',
+      isActive: currentPage === 'templates'
+    },
+    {
       id: 'documents',
       label: 'Documents',
       icon: <FileText className="w-5 h-5 text-gray-600" />,
       href: '/documents',
       isActive: currentPage === 'documents'
-    },
-    {
-      id: 'templates',
-      label: 'Templates',
-      icon: <FileText className="w-5 h-5 text-gray-600" />,
-      href: '/templates',
-      isActive: currentPage === 'templates'
     },
     {
       id: 'portal',
