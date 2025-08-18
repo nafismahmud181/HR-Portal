@@ -452,6 +452,33 @@ ${formData.contactEmail}`;
                          placeholder="Enter signatory name"
                        />
                      </div>
+                     <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
+                        <input
+                          type="text"
+                          value={formData.companyName}
+                          onChange={(e) => handleInputChange('companyName', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Contact Phone</label>
+                      <input
+                        type="text"
+                        value={formData.contactPhone}
+                        onChange={(e) => handleInputChange('contactPhone', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Contact Email</label>
+                      <input
+                        type="email"
+                        value={formData.contactEmail}
+                        onChange={(e) => handleInputChange('contactEmail', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      </div>
 
                       
                    </div>
@@ -525,7 +552,7 @@ ${formData.contactEmail}`;
                   </div>
                 )}
 
-                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                {/* <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                   <h4 className="font-semibold text-blue-800 mb-2">Instructions:</h4>
                   <ul className="text-sm text-blue-700 space-y-1">
                     <li>• Upload your PNG background image (A4 format recommended)</li>
@@ -535,47 +562,11 @@ ${formData.contactEmail}`;
                     <li>• Click "PDF with Background" to create a professional document</li>
                     <li>• Or click "Simple PDF" for a basic version</li>
                   </ul>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
-
-                     {/* Company Info Section */}
-           <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
-             <h3 className="text-lg font-semibold mb-4 text-gray-800">Company Information</h3>
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-               <div>
-                 <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
-                 <input
-                   type="text"
-                   value={formData.companyName}
-                   onChange={(e) => handleInputChange('companyName', e.target.value)}
-                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                 />
-               </div>
-               <div>
-                 <label className="block text-sm font-medium text-gray-700 mb-2">Contact Phone</label>
-                 <input
-                   type="text"
-                   value={formData.contactPhone}
-                   onChange={(e) => handleInputChange('contactPhone', e.target.value)}
-                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                 />
-               </div>
-               <div>
-                 <label className="block text-sm font-medium text-gray-700 mb-2">Contact Email</label>
-                 <input
-                   type="email"
-                   value={formData.contactEmail}
-                   onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                 />
-                 </div>
-               </div>
-             </div>
            </div>
-
-
         </div>
       </div>
     </div>
