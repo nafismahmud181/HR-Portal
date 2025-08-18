@@ -6,12 +6,14 @@ import AuthPage from './components/AuthPage';
 import DocumentsPage from './components/DocumentsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
+import TitleManager from './components/TitleManager';
 import './App.css';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
+        <TitleManager />
         <div className="App">
           <Routes>
             <Route path="/" element={<LandingPage />} />
