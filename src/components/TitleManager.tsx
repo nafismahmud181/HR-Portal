@@ -17,6 +17,8 @@ const TitleManager = () => {
         return PAGE_TITLES.portal;
       case '/documents':
         return PAGE_TITLES.documents;
+      case '/employees':
+        return PAGE_TITLES.employees;
       default:
         return PAGE_TITLES.home;
     }

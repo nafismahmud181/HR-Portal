@@ -18,5 +18,6 @@ export const PAGE_TITLES = {
   auth: 'Sign In - HR Portal',
   templates: 'Document Templates - HR Portal',
   portal: 'Create Document - HR Portal',
-  documents: 'My Documents - HR Portal'
+  documents: 'My Documents - HR Portal',
+  employees: 'Employee Directory - HR Portal'
 } as const;
