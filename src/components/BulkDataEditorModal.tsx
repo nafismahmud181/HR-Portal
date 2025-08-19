@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 interface ColumnDef {
   key: string;
@@ -21,6 +21,8 @@ function BulkDataEditorModal({
   onConfirm,
 }: BulkDataEditorModalProps) {
   const [rows, setRows] = useState<Array<Record<string, string>>>(initialRows);
+  const [colWidths, setColWidths] = useState<Record<string, number>>({});
+  const resizingRef = useRef<{ key: string; startX: number; startWidth: number } | null>(null);
 
   const emptyRow = useMemo(() => {
     const base: Record<string, string> = {};
@@ -34,6 +36,39 @@ function BulkDataEditorModal({
       next[rowIdx] = { ...next[rowIdx], [key]: value };
       return next;
     });
+  };
+
+  // Initialize default column widths
+  useEffect(() => {
+    setColWidths((prev) => {
+      const next: Record<string, number> = { ...prev };
+      columns.forEach((c) => {
+        if (next[c.key] == null) {
+          next[c.key] = 160; // default width in px
+        }
+      });
+      return next;
+    });
+  }, [columns]);
+
+  const onResizeMouseDown = (key: string, e: React.MouseEvent<HTMLSpanElement>) => {
+    e.preventDefault();
+    resizingRef.current = { key, startX: e.clientX, startWidth: colWidths[key] ?? 160 };
+    window.addEventListener("mousemove", onResizeMouseMove as unknown as EventListener);
+    window.addEventListener("mouseup", onResizeMouseUp as unknown as EventListener, { once: true } as AddEventListenerOptions);
+  };
+
+  const onResizeMouseMove = (e: MouseEvent) => {
+    const state = resizingRef.current;
+    if (!state) return;
+    const delta = e.clientX - state.startX;
+    const newWidth = Math.max(80, state.startWidth + delta);
+    setColWidths((prev) => ({ ...prev, [state.key]: newWidth }));
+  };
+
+  const onResizeMouseUp = () => {
+    window.removeEventListener("mousemove", onResizeMouseMove as unknown as EventListener);
+    resizingRef.current = null;
   };
 
   return (
@@ -60,14 +95,23 @@ function BulkDataEditorModal({
         </div>
 
         {/* Table */}
-        <div className="flex-1 overflow-auto">
-          <table className="w-full text-sm">
+        <div className="flex-1 overflow-x-auto overflow-y-auto">
+          <table className="min-w-max text-sm">
             <thead className="sticky top-0 bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="w-12 px-3 py-2 text-left text-gray-500 font-medium">#</th>
                 {columns.map((c) => (
-                  <th key={String(c.key)} className="px-3 py-2 text-left text-gray-700 font-medium">
+                  <th
+                    key={String(c.key)}
+                    className="px-3 py-2 text-left text-gray-700 font-medium relative select-none"
+                    style={{ width: colWidths[c.key] ?? 160, minWidth: colWidths[c.key] ?? 160 }}
+                  >
                     {c.label}
+                    <span
+                      onMouseDown={(e) => onResizeMouseDown(c.key, e)}
+                      className="absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-blue-400"
+                      title="Drag to resize"
+                    />
                   </th>
                 ))}
               </tr>
@@ -77,7 +121,11 @@ function BulkDataEditorModal({
                 <tr key={rowIdx} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="px-3 py-2 text-gray-500">{rowIdx + 1}</td>
                   {columns.map((c) => (
-                    <td key={String(c.key)} className="px-3 py-1">
+                    <td
+                      key={String(c.key)}
+                      className="px-3 py-1"
+                      style={{ width: colWidths[c.key] ?? 160, minWidth: colWidths[c.key] ?? 160 }}
+                    >
                       <input
                         value={String(row[c.key] ?? "")}
                         onChange={(e) => updateCell(rowIdx, c.key, e.target.value)}

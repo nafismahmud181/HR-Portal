@@ -1007,24 +1007,34 @@ ${formData.contactEmail}`;
           loadingRecent={loadingRecent}
           onExcelSelected={(file) => {
             (async () => {
-              if (currentUser?.uid) {
-                try {
-                  const upload = await documentService.uploadUserAsset(currentUser.uid, file);
-                  setRecentUploads((prev) => [{ id: upload.id!, name: upload.fileName, url: upload.downloadUrl, type: upload.fileType }, ...prev]);
-                } catch { /* ignore */ }
-              }
+              // Close picker immediately for a smoother UX
+              setShowBulkModal(false);
+
               const name = file.name.toLowerCase();
               if (name.endsWith(".csv")) {
                 const text = await file.text();
                 const { columns, rows } = parseCsvRaw(text);
-                setEditorColumns(columns.map((k) => ({ key: k, label: k })));
+                setEditorColumns(columns.map((k: string) => ({ key: k, label: k })));
                 setEditorRows(rows);
               } else {
                 const { columns, rows } = await parseExcelRaw(file);
-                setEditorColumns(columns.map((k) => ({ key: k, label: k })));
+                setEditorColumns(columns.map((k: string) => ({ key: k, label: k })));
                 setEditorRows(rows);
               }
               setShowEditor(true);
+
+              // Upload asynchronously to fill Recent (do not block UI)
+              if (currentUser?.uid) {
+                documentService
+                  .uploadUserAsset(currentUser.uid, file)
+                  .then((upload) => {
+                    setRecentUploads((prev) => [
+                      { id: upload.id!, name: upload.fileName, url: upload.downloadUrl, type: upload.fileType, storagePath: upload.storagePath },
+                      ...prev,
+                    ]);
+                  })
+                  .catch(() => {});
+              }
             })();
           }}
           onSvgSelected={(file) => {
