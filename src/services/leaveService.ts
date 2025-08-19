@@ -208,8 +208,37 @@ class LeaveService {
         throw new Error('Firestore is not properly configured');
       }
 
+      // Fetch the request first so we can reconcile balances if needed
+      const existingRequest = await this.getLeaveRequestById(requestId);
+
       const requestRef = doc(this.db, this.leaveCollection, requestId);
       await deleteDoc(requestRef);
+
+      // If the request was approved and tracked, decrement usedDays
+      if (
+        existingRequest &&
+        existingRequest.status === 'Approved' &&
+        this.isBalanceTrackedType(existingRequest.leaveType)
+      ) {
+        const year = new Date(existingRequest.startDate).getFullYear();
+        const balances = await this.getLeaveBalances(existingRequest.employeeId, year);
+        const existingBalance = balances.find(b => b.leaveType === existingRequest.leaveType);
+
+        const totalDaysAllowance = existingBalance?.totalDays ?? this.getDefaultAllowance(existingRequest.leaveType);
+        const priorUsedDays = existingBalance?.usedDays ?? 0;
+        const usedDays = Math.max(priorUsedDays - (existingRequest.totalDays || 0), 0);
+        const remainingDays = Math.max(totalDaysAllowance - usedDays, 0);
+
+        await this.updateLeaveBalance({
+          employeeId: existingRequest.employeeId,
+          employeeName: existingRequest.employeeName,
+          leaveType: existingRequest.leaveType,
+          totalDays: totalDaysAllowance,
+          usedDays,
+          remainingDays,
+          year,
+        });
+      }
     } catch (error) {
       throw new Error('Failed to delete leave request: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }

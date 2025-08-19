@@ -19,6 +19,7 @@ import {
 import { employeeService, type Employee } from "../services/employeeService";
 import CreateLeaveRequestModal from "./CreateLeaveRequestModal";
 import LeaveRequestDetailsModal from "./LeaveRequestDetailsModal";
+import ConfirmDialog from "./ConfirmDialog";
 import LeaveBalanceCard from "./LeaveBalanceCard";
 import LeaveCalendar from "./LeaveCalendar";
 
@@ -43,6 +44,7 @@ const LeaveManagementPage: React.FC = () => {
   const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(
     null
   );
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     searchTerm: "",
     status: "All Statuses",
@@ -140,6 +142,15 @@ const LeaveManagementPage: React.FC = () => {
       }
     } catch (error) {
       console.error("Error rejecting request:", error);
+    }
+  };
+
+  const handleDeleteRequest = async (requestId: string) => {
+    try {
+      await leaveService.deleteLeaveRequest(requestId);
+      loadData();
+    } catch (error) {
+      console.error("Error deleting request:", error);
     }
   };
 
@@ -448,12 +459,18 @@ const LeaveManagementPage: React.FC = () => {
                                   onClick={() =>
                                     handleRejectRequest(request.id!, "")
                                   }
-                                  className="text-red-600 hover:text-red-900"
+                                  className="text-red-600 hover:text-red-900 mr-3"
                                 >
                                   Reject
                                 </button>
                               </>
                             )}
+                            <button
+                              onClick={() => setConfirmDeleteId(request.id!)}
+                              className="text-red-600 hover:text-red-900"
+                            >
+                              Delete
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -619,12 +636,18 @@ const LeaveManagementPage: React.FC = () => {
                                   onClick={() =>
                                     handleRejectRequest(request.id!, "")
                                   }
-                                  className="text-red-600 hover:text-red-900"
+                                  className="text-red-600 hover:text-red-900 mr-3"
                                 >
                                   Reject
                                 </button>
                               </>
                             )}
+                            <button
+                              onClick={() => setConfirmDeleteId(request.id!)}
+                              className="text-red-600 hover:text-red-900"
+                            >
+                              Delete
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -678,6 +701,20 @@ const LeaveManagementPage: React.FC = () => {
             handleRejectRequest(selectedRequest.id!, reason);
             setSelectedRequest(null);
           }}
+        />
+      )}
+
+      {confirmDeleteId && (
+        <ConfirmDialog
+          title="Delete Leave Request"
+          message="Are you sure you want to delete this leave request? This action cannot be undone."
+          confirmText="Delete"
+          cancelText="Cancel"
+          onConfirm={() => {
+            handleDeleteRequest(confirmDeleteId);
+            setConfirmDeleteId(null);
+          }}
+          onCancel={() => setConfirmDeleteId(null)}
         />
       )}
     </div>
