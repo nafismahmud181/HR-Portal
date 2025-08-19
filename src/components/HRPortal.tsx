@@ -13,6 +13,7 @@ import SideNavbar from "./SideNavbar";
 import PortalRightSidebar from "./PortalRightSidebar";
 import DriveStylePickerModal from "./DriveStylePickerModal";
 import BulkDataEditorModal from "./BulkDataEditorModal";
+import GenerationValidationModal from "./GenerationValidationModal";
 import type { TemplateKey } from "./templates/TemplateRegistry";
 import { templates } from "./templates/TemplateRegistry";
 import { documentService } from "../services/documentService";
@@ -49,6 +50,10 @@ const HRPortal = () => {
   const [activeTemplate, setActiveTemplate] = useState<TemplateKey>("loe");
   const [selectedBackgroundImage, setSelectedBackgroundImage] =
     useState<string>("");
+  const [selectedBackgroundImageFile, setSelectedBackgroundImageFile] =
+    useState<File | null>(null);
+  const [selectedSignatureImageFile, setSelectedSignatureImageFile] =
+    useState<File | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [qualityLevel, setQualityLevel] = useState<QualityLevel>("high");
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
@@ -81,6 +86,7 @@ const HRPortal = () => {
   const [showGenerationProgress, setShowGenerationProgress] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [totalDocuments, setTotalDocuments] = useState(0);
+  const [showValidationModal, setShowValidationModal] = useState(false);
 
   // Read document type from URL parameters and pre-select template
   useEffect(() => {
@@ -116,8 +122,9 @@ const HRPortal = () => {
   ) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Store the file path or handle the upload
+      // Store both the URL and the file
       setSelectedBackgroundImage(URL.createObjectURL(file));
+      setSelectedBackgroundImageFile(file);
     }
   };
 
@@ -126,6 +133,9 @@ const HRPortal = () => {
   ) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Store the file
+      setSelectedSignatureImageFile(file);
+      
       // Convert to data URL for storage
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -139,6 +149,18 @@ const HRPortal = () => {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleValidationProceed = () => {
+    console.log('Validation passed, starting generation...');
+    setShowValidationModal(false);
+    setShowGenerationProgress(true);
+    
+    // Use a small delay to ensure state is updated before calling the generation function
+    setTimeout(() => {
+      console.log('Starting generation after validation...');
+      void bulkGenerateDocumentsWithProgress();
+    }, 100);
   };
 
 
@@ -184,14 +206,15 @@ const HRPortal = () => {
   const bulkGenerateDocumentsWithProgress = async () => {
     console.log('🚀 bulkGenerateDocumentsWithProgress started');
     console.log('📊 Current state:');
-    console.log('  - selectedBackgroundImage:', !!selectedBackgroundImage);
+    console.log('  - selectedBackgroundImageFile:', !!selectedBackgroundImageFile);
+    console.log('  - selectedSignatureImageFile:', !!selectedSignatureImageFile);
     console.log('  - currentUser:', !!currentUser);
     console.log('  - bulkRows.length:', bulkRows.length);
     console.log('  - bulkRows actual data:', bulkRows);
     console.log('  - columnMapping:', columnMapping);
     console.log('  - totalDocuments:', totalDocuments);
     
-    if (!selectedBackgroundImage) {
+    if (!selectedBackgroundImageFile) {
       console.log('❌ No background image selected');
       setBulkStatus("Please upload a background image first.");
       setShowGenerationProgress(false);
@@ -220,37 +243,55 @@ const HRPortal = () => {
       const JSZip = (await import('jszip')).default;
       const zip = new JSZip();
       
-      // Build rows for generation; if mapping is present, transform raw rows to the required shape
-      const hasMapping = Object.keys(columnMapping).length > 0;
-      const rowsForGeneration: FormData[] = hasMapping
-        ? (bulkRows as unknown as Array<Record<string, string>>).map((raw) => {
-            const mapped: FormData = {
-              employeeName: "",
-              joiningDate: "",
-              salary: "",
-              currency: formData.currency,
-              position: formData.position,
-              companyName: formData.companyName,
-              signatoryName: formData.signatoryName,
-              signatoryTitle: formData.signatoryTitle,
-              contactPhone: formData.contactPhone,
-              contactEmail: formData.contactEmail,
-              website: formData.website,
-              signatureImage: formData.signatureImage,
-            };
-            Object.entries(columnMapping).forEach(([columnKey, targetKey]) => {
-              // Only map to known keys
-              if (targetKey in mapped) {
-                const value = (raw as Record<string, string | undefined>)[columnKey];
-                (mapped as Record<string, string | undefined>)[targetKey as keyof FormData] = String(value ?? "");
-              }
-            });
-            return mapped;
-          })
-        : (bulkRows as unknown as FormData[]);
+             // Build rows for generation; if mapping is present, transform raw rows to the required shape
+       const hasMapping = Object.keys(columnMapping).length > 0;
+       const rowsForGeneration: FormData[] = hasMapping
+         ? (bulkRows as unknown as Array<Record<string, string>>).map((raw) => {
+             const mapped: FormData = {
+               employeeName: "",
+               joiningDate: "",
+               salary: "",
+               currency: formData.currency,
+               position: formData.position,
+               companyName: formData.companyName,
+               signatoryName: formData.signatoryName,
+               signatoryTitle: formData.signatoryTitle,
+               contactPhone: formData.contactPhone,
+               contactEmail: formData.contactEmail,
+               website: formData.website,
+               signatureImage: formData.signatureImage || "", // Ensure it's never undefined
+             };
+             Object.entries(columnMapping).forEach(([columnKey, targetKey]) => {
+               // Only map to known keys
+               if (targetKey in mapped) {
+                 const value = (raw as Record<string, string | undefined>)[columnKey];
+                 (mapped as Record<string, string | undefined>)[targetKey as keyof FormData] = String(value ?? "");
+               }
+             });
+             
+             // Clean up undefined values to prevent Firestore errors
+             Object.keys(mapped).forEach(key => {
+               if ((mapped as Record<string, string | undefined>)[key] === undefined) {
+                 (mapped as Record<string, string | undefined>)[key] = "";
+               }
+             });
+             
+             return mapped;
+           })
+         : (bulkRows as unknown as FormData[]).map(row => {
+             // Clean up undefined values in unmapped rows too
+             const cleanedRow = { ...row };
+             Object.keys(cleanedRow).forEach(key => {
+               if ((cleanedRow as Record<string, string | undefined>)[key] === undefined) {
+                 (cleanedRow as Record<string, string | undefined>)[key] = "";
+               }
+             });
+             return cleanedRow;
+           });
 
-      console.log('Rows for generation:', rowsForGeneration.length);
-      console.log('Column mapping:', columnMapping);
+             console.log('Rows for generation:', rowsForGeneration.length);
+       console.log('Column mapping:', columnMapping);
+       console.log('Sample cleaned row:', rowsForGeneration[0]);
 
       for (let i = 0; i < rowsForGeneration.length; i++) {
         const row = rowsForGeneration[i];
@@ -1128,26 +1169,53 @@ ${formData.contactEmail}`;
           onGenerate={(rows, mapping) => {
             console.log('onGenerate called with:', { rows: rows.length, mapping });
             
-            // Set all the state first
+            // Set the data for generation
             setBulkRows(rows as unknown as FormData[]);
             setColumnMapping(mapping);
             setTotalDocuments(rows.length);
             setGenerationProgress(0);
-            setShowGenerationProgress(true);
             setShowEditor(false);
             
-            console.log('State set, showGenerationProgress should be true');
-            console.log('showGenerationProgress state:', true);
-            console.log('bulkRows being set to:', rows.length, 'rows');
+            // Show validation modal instead of starting generation immediately
+            setShowValidationModal(true);
             
-            // Use a small delay to ensure state is updated before calling the generation function
-            setTimeout(() => {
-              console.log('Starting generation after state update...');
-              void bulkGenerateDocumentsWithProgress();
-            }, 100);
+            console.log('Validation modal will be shown, rows:', rows.length);
           }}
         />
       )}
+      
+      {/* Generation Validation Modal */}
+      <GenerationValidationModal
+        isOpen={showValidationModal}
+        onClose={() => setShowValidationModal(false)}
+        onProceed={handleValidationProceed}
+        backgroundImage={selectedBackgroundImageFile}
+        signatureImage={selectedSignatureImageFile}
+        onBackgroundImageChange={(file) => {
+          setSelectedBackgroundImageFile(file);
+          if (file) {
+            setSelectedBackgroundImage(URL.createObjectURL(file));
+          }
+        }}
+        onSignatureImageChange={(file) => {
+          setSelectedSignatureImageFile(file);
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const target = e.target as FileReader;
+              if (target.result) {
+                setFormData((prev) => ({
+                  ...prev,
+                  signatureImage: target.result as string,
+                }));
+              }
+            };
+            reader.readAsDataURL(file);
+          }
+        }}
+        totalDocuments={totalDocuments}
+      />
+      
       {showGenerationProgress && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-96">
