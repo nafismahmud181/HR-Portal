@@ -100,7 +100,18 @@ const DriveStylePickerModal: React.FC<DriveStylePickerModalProps> = ({
               {loadingRecent ? (
                 <div className="flex items-center justify-center h-40 text-gray-500 text-sm">Loading...</div>
               ) : recent.length === 0 ? (
-                <div className="flex items-center justify-center h-40 text-gray-500 text-sm">No results found</div>
+                <div className="flex flex-col items-center justify-center py-24">
+                  {/* Box illustration */}
+                  <svg width="140" height="120" viewBox="0 0 140 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 50l50-18 50 18v42a6 6 0 0 1-3.3 5.4L73 116a8 8 0 0 1-6.8 0L23.3 97.4A6 6 0 0 1 20 92V50z" fill="#E5E7EB"/>
+                    <path d="M20 50l50 18 50-18" stroke="#D1D5DB" stroke-width="2"/>
+                    <path d="M70 68v48" stroke="#D1D5DB" stroke-width="2"/>
+                    <path d="M45 20l25-9 25 9" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="95" cy="12" r="2" fill="#9CA3AF"/>
+                  </svg>
+                  <div className="mt-4 text-base font-medium text-gray-700">This folder is empty</div>
+                  <div className="mt-1 text-sm text-gray-500">Add files to this folder and try reloading</div>
+                </div>
               ) : (
                 <div className="grid grid-cols-4 gap-4">
                   {recent.map((file: { id: string; name: string; url: string }) => (
