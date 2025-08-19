@@ -31,6 +31,17 @@ export interface DocumentRecord {
   downloadUrl?: string; // Public download URL
 }
 
+export interface UploadRecord {
+  id?: string;
+  userId: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  storagePath: string;
+  downloadUrl: string;
+  uploadedAt: Timestamp; // serverTimestamp
+}
+
 export class DocumentService {
   private db: Firestore;
   private storage: FirebaseStorage;
@@ -232,6 +243,60 @@ export class DocumentService {
     } catch {
       throw new Error('Failed to delete document');
     }
+  }
+
+  // ========= Generic uploads (for Recent section in picker) =========
+
+  async uploadUserAsset(userId: string, file: File): Promise<UploadRecord> {
+    if (!this.db || Object.keys(this.db).length === 0) {
+      throw new Error('Firestore is not properly configured');
+    }
+
+    const timestamp = Date.now();
+    const storagePath = `uploads/${userId}/${timestamp}_${file.name}`;
+    const storageRef = ref(this.storage, storagePath);
+    await uploadBytes(storageRef, file);
+    const downloadUrl = await getDownloadURL(storageRef);
+
+    const uploadDoc = await addDoc(collection(this.db, 'uploads'), {
+      userId,
+      fileName: file.name,
+      fileType: file.type || 'application/octet-stream',
+      fileSize: file.size,
+      storagePath,
+      downloadUrl,
+      uploadedAt: serverTimestamp(),
+    });
+
+    // Compose record; uploadedAt will be server time on the server; can be undefined in client read until fetched again
+    const placeholder = serverTimestamp() as unknown as Timestamp;
+    return {
+      id: uploadDoc.id,
+      userId,
+      fileName: file.name,
+      fileType: file.type || 'application/octet-stream',
+      fileSize: file.size,
+      storagePath,
+      downloadUrl,
+      uploadedAt: placeholder,
+    } as unknown as UploadRecord;
+  }
+
+  async getUserUploads(userId: string): Promise<UploadRecord[]> {
+    if (!this.db || Object.keys(this.db).length === 0) {
+      throw new Error('Firestore is not properly configured');
+    }
+    const q = query(collection(this.db, 'uploads'), where('userId', '==', userId));
+    const snap = await getDocs(q);
+    const uploads: UploadRecord[] = [];
+    snap.forEach((docSnap) => {
+      uploads.push({ id: docSnap.id, ...(docSnap.data() as Omit<UploadRecord, 'id'>) });
+    });
+    uploads.sort((a, b) => {
+      if (!a.uploadedAt || !b.uploadedAt) return 0;
+      return b.uploadedAt.toMillis() - a.uploadedAt.toMillis();
+    });
+    return uploads;
   }
 }
 

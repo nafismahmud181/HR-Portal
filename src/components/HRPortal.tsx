@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { generatePDF } from "./PDFGenerator";
 import SideNavbar from "./SideNavbar";
+import PortalRightSidebar from "./PortalRightSidebar";
+import DriveStylePickerModal from "./DriveStylePickerModal";
 import type { TemplateKey } from "./templates/TemplateRegistry";
 import { templates } from "./templates/TemplateRegistry";
 import { documentService } from "../services/documentService";
@@ -48,6 +50,10 @@ const HRPortal = () => {
     useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [qualityLevel, setQualityLevel] = useState<QualityLevel>("high");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  const [showBulkModal, setShowBulkModal] = useState<boolean>(false);
+  const [recentUploads, setRecentUploads] = useState<Array<{ id: string; name: string; url: string; type: string }>>([]);
+  const [loadingRecent, setLoadingRecent] = useState<boolean>(false);
   const [formData, setFormData] = useState<FormData>({
     employeeName: "",
     joiningDate: "",
@@ -61,6 +67,12 @@ const HRPortal = () => {
     contactEmail: "info@inteliweave.com.bd",
     website: "www.inteliweave.com.bd",
   });
+
+  // Bulk generation state
+  const [bulkRows, setBulkRows] = useState<FormData[]>([]);
+  const [bulkStatus, setBulkStatus] = useState<string>("");
+  const [isBulkGenerating, setIsBulkGenerating] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
 
   // Read document type from URL parameters and pre-select template
   useEffect(() => {
@@ -118,6 +130,147 @@ const HRPortal = () => {
         }
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  // --- Bulk CSV upload and generation ---
+  const parseCsvToRows = (csv: string): FormData[] => {
+    const lines = csv.trim().split(/\r?\n/);
+    if (lines.length < 2) return [];
+    const headers = lines[0].split(",").map((h) => h.trim().replace(/^"|"$/g, ""));
+    const rows: FormData[] = [];
+    for (let i = 1; i < lines.length; i++) {
+      if (!lines[i].trim()) continue;
+      const raw = lines[i].split(",").map((c) => c.trim().replace(/^"|"$/g, ""));
+      const row: Partial<FormData> = {};
+      headers.forEach((h, idx) => {
+        const key = h as keyof FormData;
+        const value = raw[idx] ?? "";
+        (row as Record<string, string | undefined>)[key] = value;
+      });
+      // Merge with defaults to ensure all keys exist
+      rows.push({
+        employeeName: String(row.employeeName ?? ""),
+        joiningDate: String(row.joiningDate ?? ""),
+        salary: String(row.salary ?? ""),
+        currency: String(row.currency ?? formData.currency),
+        position: String(row.position ?? formData.position),
+        companyName: String(row.companyName ?? formData.companyName),
+        signatoryName: String(row.signatoryName ?? formData.signatoryName),
+        signatoryTitle: String(row.signatoryTitle ?? formData.signatoryTitle),
+        contactPhone: String(row.contactPhone ?? formData.contactPhone),
+        contactEmail: String(row.contactEmail ?? formData.contactEmail),
+        website: String(row.website ?? formData.website),
+        signatureImage: formData.signatureImage,
+      });
+    }
+    return rows;
+  };
+
+  const parseExcelToRows = async (file: File): Promise<FormData[]> => {
+    try {
+      const buffer = await file.arrayBuffer();
+      // Lazy import to avoid bundling if not used
+      const XLSX = await import("xlsx");
+      const workbook = XLSX.read(buffer, { type: "array" });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const json: Array<Record<string, unknown>> = XLSX.utils.sheet_to_json(worksheet);
+
+      const rows: FormData[] = json.map((obj) => {
+        const row = obj as Record<string, unknown>;
+        return {
+          employeeName: String(row.employeeName ?? ""),
+          joiningDate: String(row.joiningDate ?? ""),
+          salary: String(row.salary ?? ""),
+          currency: String(row.currency ?? formData.currency),
+          position: String(row.position ?? formData.position),
+          companyName: String(row.companyName ?? formData.companyName),
+          signatoryName: String(row.signatoryName ?? formData.signatoryName),
+          signatoryTitle: String(row.signatoryTitle ?? formData.signatoryTitle),
+          contactPhone: String(row.contactPhone ?? formData.contactPhone),
+          contactEmail: String(row.contactEmail ?? formData.contactEmail),
+          website: String(row.website ?? formData.website),
+          signatureImage: formData.signatureImage,
+        };
+      });
+      return rows;
+    } catch {
+      setBulkStatus("Failed to parse Excel. Please ensure the headers match the required fields.");
+      return [];
+    }
+  };
+
+  const handleBulkFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const name = file.name.toLowerCase();
+    try {
+      // Save raw upload to Firebase Storage for Recent tab
+      if (currentUser?.uid) {
+        try {
+          const upload = await documentService.uploadUserAsset(currentUser.uid, file);
+          setRecentUploads((prev) => [{ id: upload.id!, name: upload.fileName, url: upload.downloadUrl, type: upload.fileType }, ...prev]);
+        } catch {
+          // ignore upload failure for recent list; continue parsing locally
+        }
+      }
+      if (name.endsWith(".csv")) {
+        const text = await file.text();
+        const rows = parseCsvToRows(text);
+        setBulkRows(rows);
+        setBulkStatus(`Loaded ${rows.length} rows from ${file.name}.`);
+      } else if (name.endsWith(".xlsx") || name.endsWith(".xls")) {
+        const rows = await parseExcelToRows(file);
+        setBulkRows(rows);
+        setBulkStatus(`Loaded ${rows.length} rows from ${file.name}.`);
+      } else {
+        setBulkStatus("Unsupported file type. Please upload .csv, .xlsx, or .xls");
+        setBulkRows([]);
+      }
+    } catch {
+      setBulkStatus("Failed to read the file.");
+      setBulkRows([]);
+    }
+  };
+
+  const bulkGenerateDocuments = async () => {
+    if (!selectedBackgroundImage) {
+      setBulkStatus("Please upload a background image first.");
+      return;
+    }
+    if (!currentUser || !currentUser.uid) return;
+    if (bulkRows.length === 0) return;
+
+    setIsBulkGenerating(true);
+    setBulkProgress({ current: 0, total: bulkRows.length });
+    setBulkStatus("Starting bulk generation...");
+    try {
+      for (let i = 0; i < bulkRows.length; i++) {
+        const row = bulkRows[i];
+        setBulkProgress({ current: i + 1, total: bulkRows.length });
+        const result = await generatePDF(
+          selectedBackgroundImage,
+          row,
+          activeTemplate,
+          qualityLevel
+        );
+        const { blob } = result;
+        const safeName = row.employeeName?.replace(/[^a-z0-9-_ ]/gi, "_") || "Employee";
+        const filename = `${templates[activeTemplate].name}_${safeName}.pdf`;
+        await documentService.saveDocumentWithPDF(
+          currentUser.uid,
+          activeTemplate,
+          filename,
+          row,
+          blob
+        );
+      }
+      setBulkStatus(`Successfully generated ${bulkRows.length} documents.`);
+    } catch {
+      setBulkStatus("Bulk generation interrupted due to an error. Some documents may still have been saved.");
+    } finally {
+      setIsBulkGenerating(false);
     }
   };
 
@@ -426,8 +579,8 @@ ${formData.contactEmail}`;
       {/* Side Navbar */}
       <SideNavbar currentPage="portal" />
 
-      {/* Main Content with Fixed Left Margin for Sidebar */}
-      <div className="ml-20">
+      {/* Main Content with Fixed Left Margin and right sidebar margin */}
+      <div className={`ml-20 ${sidebarCollapsed ? "mr-16" : "mr-60"}`}>
         {/* Navigation Header */}
         <nav className="bg-white shadow-sm border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -745,10 +898,108 @@ ${formData.contactEmail}`;
                 </div> */}
                 </div>
               </div>
+
+              {/* Bulk Generator */}
+              <div className="lg:col-span-3">
+                <div className="bg-white rounded-xl shadow-lg p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-800">Bulk Letter Generator</h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Upload CSV / Excel</label>
+                      <input
+                        type="file"
+                        accept=".csv,.xlsx,.xls"
+                        onChange={handleBulkFileChange}
+                        className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Required headers (first row): employeeName, joiningDate, salary, currency, position, companyName, signatoryName, signatoryTitle, contactPhone, contactEmail, website
+                      </p>
+                    </div>
+                    <div className="flex items-end">
+                      <button
+                        onClick={bulkGenerateDocuments}
+                        disabled={isBulkGenerating || bulkRows.length === 0}
+                        className="w-full md:w-auto inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                      >
+                        {isBulkGenerating ? "Generating..." : "Generate in Bulk"}
+                      </button>
+                    </div>
+                  </div>
+                  {bulkStatus && (
+                    <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded">
+                      <p className="text-sm text-gray-700">{bulkStatus}</p>
+                      {isBulkGenerating && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Progress: {bulkProgress.current} / {bulkProgress.total}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
+      <PortalRightSidebar
+        collapsed={sidebarCollapsed}
+        onToggle={() => setSidebarCollapsed((v) => !v)}
+        onBulkCreate={async () => {
+          setShowBulkModal(true);
+          if (currentUser?.uid) {
+            try {
+              setLoadingRecent(true);
+              const uploads = await documentService.getUserUploads(currentUser.uid);
+              setRecentUploads(uploads.map(u => ({ id: u.id!, name: u.fileName, url: u.downloadUrl, type: u.fileType })));
+            } finally {
+              setLoadingRecent(false);
+            }
+          }
+        }}
+      />
+
+      {showBulkModal && (
+        <DriveStylePickerModal
+          onClose={() => setShowBulkModal(false)}
+          recent={recentUploads}
+          loadingRecent={loadingRecent}
+          onExcelSelected={(file) => {
+            // Reuse existing bulk loader
+            const syntheticEvent = { target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>;
+            // Decide by extension in our unified handler
+            handleBulkFileChange(syntheticEvent);
+          }}
+          onSvgSelected={(file) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const result = e.target?.result;
+              if (typeof result === "string") {
+                setSelectedBackgroundImage(result);
+              }
+            };
+            reader.readAsDataURL(file);
+          }}
+        />
+      )}
+      {showBulkModal && (
+        <script
+          // Inject recent uploads to the modal via a custom event; avoids tight coupling
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function(){
+                const detail = ${JSON.stringify(
+                  (recentUploads || []).map((u) => ({ id: u.id, name: u.name, url: u.url, type: u.type }))
+                )};
+                const evt = new CustomEvent('__portal_recent_uploads__', { detail });
+                window.dispatchEvent(evt);
+              })();
+            `,
+          }}
+        />
+      )}
     </div>
   );
 };
