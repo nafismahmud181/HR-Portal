@@ -56,6 +56,7 @@ const HRPortal = () => {
   const [showEditor, setShowEditor] = useState<boolean>(false);
   const [editorColumns, setEditorColumns] = useState<Array<{ key: string; label: string }>>([]);
   const [editorRows, setEditorRows] = useState<Array<Record<string, string>>>([]);
+  const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
   const [recentUploads, setRecentUploads] = useState<Array<{ id: string; name: string; url: string; type: string }>>([]);
   const [loadingRecent, setLoadingRecent] = useState<boolean>(false);
   const [formData, setFormData] = useState<FormData>({
@@ -77,6 +78,9 @@ const HRPortal = () => {
   const [bulkStatus, setBulkStatus] = useState<string>("");
   const [isBulkGenerating, setIsBulkGenerating] = useState(false);
   const [bulkProgress, setBulkProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
+  const [showGenerationProgress, setShowGenerationProgress] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
+  const [totalDocuments, setTotalDocuments] = useState(0);
 
   // Read document type from URL parameters and pre-select template
   useEffect(() => {
@@ -137,39 +141,7 @@ const HRPortal = () => {
     }
   };
 
-  // --- Bulk CSV upload and generation ---
-  const parseCsvToRows = (csv: string): FormData[] => {
-    const lines = csv.trim().split(/\r?\n/);
-    if (lines.length < 2) return [];
-    const headers = lines[0].split(",").map((h) => h.trim().replace(/^"|"$/g, ""));
-    const rows: FormData[] = [];
-    for (let i = 1; i < lines.length; i++) {
-      if (!lines[i].trim()) continue;
-      const raw = lines[i].split(",").map((c) => c.trim().replace(/^"|"$/g, ""));
-      const row: Partial<FormData> = {};
-      headers.forEach((h, idx) => {
-        const key = h as keyof FormData;
-        const value = raw[idx] ?? "";
-        (row as Record<string, string | undefined>)[key] = value;
-      });
-      // Merge with defaults to ensure all keys exist
-      rows.push({
-        employeeName: String(row.employeeName ?? ""),
-        joiningDate: String(row.joiningDate ?? ""),
-        salary: String(row.salary ?? ""),
-        currency: String(row.currency ?? formData.currency),
-        position: String(row.position ?? formData.position),
-        companyName: String(row.companyName ?? formData.companyName),
-        signatoryName: String(row.signatoryName ?? formData.signatoryName),
-        signatoryTitle: String(row.signatoryTitle ?? formData.signatoryTitle),
-        contactPhone: String(row.contactPhone ?? formData.contactPhone),
-        contactEmail: String(row.contactEmail ?? formData.contactEmail),
-        website: String(row.website ?? formData.website),
-        signatureImage: formData.signatureImage,
-      });
-    }
-    return rows;
-  };
+
 
   // Raw parsers for previewing uploaded file directly in the grid (no mapping)
   const parseCsvRaw = (csv: string): { columns: string[]; rows: Array<Record<string, string>> } => {
@@ -205,111 +177,161 @@ const HRPortal = () => {
     return { columns, rows };
   };
 
-  const parseExcelToRows = async (file: File): Promise<FormData[]> => {
-    try {
-      const buffer = await file.arrayBuffer();
-      // Lazy import to avoid bundling if not used
-      const XLSX = await import("xlsx");
-      const workbook = XLSX.read(buffer, { type: "array" });
-      const firstSheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[firstSheetName];
-      // Use first row as header (default behavior); ensure stringified values
-      const json: Array<Record<string, unknown>> = XLSX.utils.sheet_to_json(worksheet, { raw: false });
 
-      const rows: FormData[] = json.map((obj) => {
-        const row = obj as Record<string, unknown>;
-        return {
-          employeeName: String(row.employeeName ?? ""),
-          joiningDate: String(row.joiningDate ?? ""),
-          salary: String(row.salary ?? ""),
-          currency: String(row.currency ?? formData.currency),
-          position: String(row.position ?? formData.position),
-          companyName: String(row.companyName ?? formData.companyName),
-          signatoryName: String(row.signatoryName ?? formData.signatoryName),
-          signatoryTitle: String(row.signatoryTitle ?? formData.signatoryTitle),
-          contactPhone: String(row.contactPhone ?? formData.contactPhone),
-          contactEmail: String(row.contactEmail ?? formData.contactEmail),
-          website: String(row.website ?? formData.website),
-          signatureImage: formData.signatureImage,
-        };
-      });
-      return rows;
-    } catch {
-      setBulkStatus("Failed to parse Excel. Please ensure the headers match the required fields.");
-      return [];
-    }
-  };
 
-  const handleBulkFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const name = file.name.toLowerCase();
-    try {
-      // Save raw upload to Firebase Storage for Recent tab
-      if (currentUser?.uid) {
-        try {
-          const upload = await documentService.uploadUserAsset(currentUser.uid, file);
-          setRecentUploads((prev) => [{ id: upload.id!, name: upload.fileName, url: upload.downloadUrl, type: upload.fileType }, ...prev]);
-        } catch {
-          // ignore upload failure for recent list; continue parsing locally
-        }
-      }
-      if (name.endsWith(".csv")) {
-        const text = await file.text();
-        const rows = parseCsvToRows(text);
-        setBulkRows(rows);
-        setBulkStatus(`Loaded ${rows.length} rows from ${file.name}.`);
-      } else if (name.endsWith(".xlsx") || name.endsWith(".xls")) {
-        const rows = await parseExcelToRows(file);
-        setBulkRows(rows);
-        setBulkStatus(`Loaded ${rows.length} rows from ${file.name}.`);
-      } else {
-        setBulkStatus("Unsupported file type. Please upload .csv, .xlsx, or .xls");
-        setBulkRows([]);
-      }
-    } catch {
-      setBulkStatus("Failed to read the file.");
-      setBulkRows([]);
-    }
-  };
 
-  const bulkGenerateDocuments = async () => {
+
+  const bulkGenerateDocumentsWithProgress = async () => {
+    console.log('🚀 bulkGenerateDocumentsWithProgress started');
+    console.log('📊 Current state:');
+    console.log('  - selectedBackgroundImage:', !!selectedBackgroundImage);
+    console.log('  - currentUser:', !!currentUser);
+    console.log('  - bulkRows.length:', bulkRows.length);
+    console.log('  - bulkRows actual data:', bulkRows);
+    console.log('  - columnMapping:', columnMapping);
+    console.log('  - totalDocuments:', totalDocuments);
+    
     if (!selectedBackgroundImage) {
+      console.log('❌ No background image selected');
       setBulkStatus("Please upload a background image first.");
+      setShowGenerationProgress(false);
       return;
     }
-    if (!currentUser || !currentUser.uid) return;
-    if (bulkRows.length === 0) return;
+    if (!currentUser || !currentUser.uid) {
+      console.log('❌ No current user');
+      setShowGenerationProgress(false);
+      return;
+    }
+    if (bulkRows.length === 0) {
+      console.log('❌ No bulk rows');
+      setBulkStatus("No data to generate");
+      setShowGenerationProgress(false);
+      return;
+    }
+    
+    console.log('✅ All validations passed, starting generation');
 
     setIsBulkGenerating(true);
     setBulkProgress({ current: 0, total: bulkRows.length });
     setBulkStatus("Starting bulk generation...");
+    
     try {
-      for (let i = 0; i < bulkRows.length; i++) {
-        const row = bulkRows[i];
-        setBulkProgress({ current: i + 1, total: bulkRows.length });
-        const result = await generatePDF(
-          selectedBackgroundImage,
-          row,
-          activeTemplate,
-          qualityLevel
-        );
-        const { blob } = result;
-        const safeName = row.employeeName?.replace(/[^a-z0-9-_ ]/gi, "_") || "Employee";
-        const filename = `${templates[activeTemplate].name}_${safeName}.pdf`;
-        await documentService.saveDocumentWithPDF(
-          currentUser.uid,
-          activeTemplate,
-          filename,
-          row,
-          blob
-        );
+      // Import JSZip dynamically to avoid bundling issues
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      
+      // Build rows for generation; if mapping is present, transform raw rows to the required shape
+      const hasMapping = Object.keys(columnMapping).length > 0;
+      const rowsForGeneration: FormData[] = hasMapping
+        ? (bulkRows as unknown as Array<Record<string, string>>).map((raw) => {
+            const mapped: FormData = {
+              employeeName: "",
+              joiningDate: "",
+              salary: "",
+              currency: formData.currency,
+              position: formData.position,
+              companyName: formData.companyName,
+              signatoryName: formData.signatoryName,
+              signatoryTitle: formData.signatoryTitle,
+              contactPhone: formData.contactPhone,
+              contactEmail: formData.contactEmail,
+              website: formData.website,
+              signatureImage: formData.signatureImage,
+            };
+            Object.entries(columnMapping).forEach(([columnKey, targetKey]) => {
+              // Only map to known keys
+              if (targetKey in mapped) {
+                const value = (raw as Record<string, string | undefined>)[columnKey];
+                (mapped as Record<string, string | undefined>)[targetKey as keyof FormData] = String(value ?? "");
+              }
+            });
+            return mapped;
+          })
+        : (bulkRows as unknown as FormData[]);
+
+      console.log('Rows for generation:', rowsForGeneration.length);
+      console.log('Column mapping:', columnMapping);
+
+      for (let i = 0; i < rowsForGeneration.length; i++) {
+        const row = rowsForGeneration[i];
+        setBulkProgress({ current: i + 1, total: rowsForGeneration.length });
+        setGenerationProgress(i + 1);
+        
+        try {
+          console.log(`Starting generation of document ${i + 1}/${rowsForGeneration.length}`);
+          console.log('Row data:', row);
+          
+          const result = await generatePDF(
+            selectedBackgroundImage,
+            row,
+            activeTemplate,
+            qualityLevel
+          );
+          
+          console.log('PDF generated successfully:', result);
+          
+          const { blob } = result;
+          const safeName = row.employeeName?.replace(/[^a-z0-9-_ ]/gi, "_") || "Employee";
+          const filename = `${templates[activeTemplate].name}_${safeName}.pdf`;
+          
+          console.log('Adding to ZIP:', filename);
+          
+          // Add PDF to ZIP file
+          zip.file(filename, blob);
+          
+          // Upload PDF to Firebase Storage
+          console.log('Uploading to Firebase:', filename);
+          try {
+            await documentService.saveDocumentWithPDF(
+              currentUser.uid,
+              activeTemplate,
+              filename,
+              row,
+              blob
+            );
+            console.log(`Successfully uploaded to Firebase: ${filename}`);
+          } catch (uploadError) {
+            console.error(`Failed to upload to Firebase: ${filename}`, uploadError);
+            setBulkStatus(`Warning: Failed to upload ${filename} to Firebase, but it's included in ZIP.`);
+          }
+          
+          console.log(`Added document ${i + 1}/${rowsForGeneration.length} to ZIP: ${filename}`);
+        } catch (error) {
+          console.error(`Error generating document ${i + 1}:`, error);
+          setBulkStatus(`Error generating document ${i + 1}: ${String(error)}`);
+          // Continue with next document even if one fails
+        }
       }
-      setBulkStatus(`Successfully generated ${bulkRows.length} documents.`);
-    } catch {
-      setBulkStatus("Bulk generation interrupted due to an error. Some documents may still have been saved.");
+      
+      // Generate and download ZIP file
+      setBulkStatus("Generating ZIP file...");
+      console.log('Generating ZIP file...');
+      
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const zipFileName = `${templates[activeTemplate].name}_bulk_${new Date().toISOString().split('T')[0]}.zip`;
+      
+      // Create download link for ZIP
+      const downloadLink = document.createElement('a');
+      downloadLink.href = URL.createObjectURL(zipBlob);
+      downloadLink.download = zipFileName;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      
+      // Clean up
+      URL.revokeObjectURL(downloadLink.href);
+      
+      setBulkStatus(`Successfully generated ZIP file with ${rowsForGeneration.length} documents: ${zipFileName}. All PDFs have been uploaded to Firebase.`);
+      console.log('ZIP file downloaded successfully:', zipFileName);
+      
+    } catch (error) {
+      console.error("Bulk generation error:", error);
+      setBulkStatus("Bulk generation failed: " + String(error));
     } finally {
       setIsBulkGenerating(false);
+      setBulkProgress({ current: 0, total: 0 });
+      console.log('Generation completed, keeping popup open for user to close manually');
+      // Don't auto-close the popup - let user close it manually to see results
     }
   };
 
@@ -340,6 +362,15 @@ const HRPortal = () => {
         formData,
         blob
       );
+
+      // Download the PDF for user convenience
+      const downloadLink = document.createElement('a');
+      downloadLink.href = URL.createObjectURL(blob);
+      downloadLink.download = filename;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      URL.revokeObjectURL(downloadLink.href);
 
       // Show success message to user
     } catch (error) {
@@ -943,28 +974,48 @@ ${formData.contactEmail}`;
                 <div className="bg-white rounded-xl shadow-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-gray-800">Bulk Letter Generator</h3>
+                    <button
+                      onClick={() => {
+                        console.log('🧪 TEST BUTTON: Setting progress popup to visible');
+                        setTotalDocuments(5);
+                        setGenerationProgress(2);
+                        setShowGenerationProgress(true);
+                        setIsBulkGenerating(true);
+                        setBulkStatus("Testing progress popup...");
+                        console.log('🧪 State set - showGenerationProgress should be true');
+                        
+                        // Simulate progress updates
+                        setTimeout(() => {
+                          setGenerationProgress(3);
+                          console.log('🧪 Progress updated to 3/5');
+                        }, 1000);
+                        
+                        setTimeout(() => {
+                          setGenerationProgress(5);
+                          setIsBulkGenerating(false);
+                          setBulkStatus("Test completed!");
+                          console.log('🧪 Test completed - popup should stay open');
+                        }, 3000);
+                      }}
+                      className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600 font-bold"
+                    >
+                      🧪 TEST POPUP
+                    </button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Upload CSV / Excel</label>
-                      <input
-                        type="file"
-                        accept=".csv,.xlsx,.xls"
-                        onChange={handleBulkFileChange}
-                        className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        Required headers (first row): employeeName, joiningDate, salary, currency, position, companyName, signatoryName, signatoryTitle, contactPhone, contactEmail, website
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Bulk Document Generation</label>
+                      <p className="text-sm text-gray-600 mb-2">
+                        Click the "Bulk create" button in the right sidebar to upload Excel/CSV files and generate documents in bulk.
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        The process: Upload file → Map columns → Click Generate → Progress popup appears automatically
                       </p>
                     </div>
                     <div className="flex items-end">
-                      <button
-                        onClick={bulkGenerateDocuments}
-                        disabled={isBulkGenerating || bulkRows.length === 0}
-                        className="w-full md:w-auto inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
-                      >
-                        {isBulkGenerating ? "Generating..." : "Generate in Bulk"}
-                      </button>
+                      <div className="text-sm text-gray-500 italic">
+                        Use "Bulk create" from right sidebar
+                      </div>
                     </div>
                   </div>
                   {bulkStatus && (
@@ -1068,14 +1119,75 @@ ${formData.contactEmail}`;
             { key: "website", label: "Website" },
           ]}
           onClose={() => setShowEditor(false)}
-          onConfirm={(rows) => {
-            // Keep the raw rows for generation; mapping can be used later to transform into FormData
+          onConfirm={(rows, mapping) => {
+            // Save raw rows and selected mapping to apply during generation
             setBulkRows(rows as unknown as FormData[]);
-            // Optionally persist the mapping to apply during generation in the future
-            // For now, just close the editor
+            setColumnMapping(mapping);
             setShowEditor(false);
           }}
+          onGenerate={(rows, mapping) => {
+            console.log('onGenerate called with:', { rows: rows.length, mapping });
+            
+            // Set all the state first
+            setBulkRows(rows as unknown as FormData[]);
+            setColumnMapping(mapping);
+            setTotalDocuments(rows.length);
+            setGenerationProgress(0);
+            setShowGenerationProgress(true);
+            setShowEditor(false);
+            
+            console.log('State set, showGenerationProgress should be true');
+            console.log('showGenerationProgress state:', true);
+            console.log('bulkRows being set to:', rows.length, 'rows');
+            
+            // Use a small delay to ensure state is updated before calling the generation function
+            setTimeout(() => {
+              console.log('Starting generation after state update...');
+              void bulkGenerateDocumentsWithProgress();
+            }, 100);
+          }}
         />
+      )}
+      {showGenerationProgress && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96">
+            <h3 className="text-lg font-semibold mb-4">Generating Documents</h3>
+            <div className="mb-4">
+              <div className="flex justify-between text-sm text-gray-600 mb-2">
+                <span>Progress: {generationProgress} / {totalDocuments}</span>
+                <span>{totalDocuments > 0 ? Math.round((generationProgress / totalDocuments) * 100) : 0}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${totalDocuments > 0 ? (generationProgress / totalDocuments) * 100 : 0}%` }}
+                ></div>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              {isBulkGenerating 
+                ? `Generating ${totalDocuments} document${totalDocuments !== 1 ? 's' : ''}, uploading to Firebase, and creating ZIP file...`
+                : `Generated ${generationProgress} document${generationProgress !== 1 ? 's' : ''}, uploaded to Firebase, and ZIP file successfully!`
+              }
+            </p>
+            {!isBulkGenerating && generationProgress > 0 && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded text-sm text-green-700">
+                ✓ ZIP file downloaded successfully! All PDFs have been uploaded to Firebase. Check your downloads folder for the ZIP file.
+              </div>
+            )}
+            {bulkStatus && (
+              <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded text-sm text-gray-700">
+                {bulkStatus}
+              </div>
+            )}
+            <button
+              onClick={() => setShowGenerationProgress(false)}
+              className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+            >
+              {isBulkGenerating ? 'Generating...' : 'Close'}
+            </button>
+          </div>
+        </div>
       )}
       {/* custom event injection removed; modal now receives props directly */}
     </div>

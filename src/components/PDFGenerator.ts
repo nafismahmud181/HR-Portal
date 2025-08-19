@@ -149,7 +149,6 @@ ${data.contactEmail}`;
   async generatePDF(
     data: TemplateData,
     documentType: TemplateKey,
-    filename: string,
     quality: QualityLevel = 'high'
   ): Promise<Blob> {
     if (!this.backgroundImage) {
@@ -241,13 +240,8 @@ ${data.contactEmail}`;
       // Get the PDF as a blob
       const pdfBlob = pdf.output('blob');
       
-      // Also save the PDF for user convenience
-      try {
-        pdf.save(filename);
-      } catch (saveError) {
-        console.warn('PDF save failed, but blob was generated successfully:', saveError);
-        // Don't throw error here, we still want to return the blob
-      }
+      // Note: Removed automatic pdf.save() to prevent individual downloads during bulk generation
+      // Individual downloads should be handled by the calling code when needed
       
       return pdfBlob;
     } catch (error) {
@@ -290,7 +284,7 @@ ${data.contactEmail}`;
       console.log('Generated filename:', filename);
       console.log('Calling generatePDF...');
       
-      const blob = await this.generatePDF(data, documentType, filename, quality);
+      const blob = await this.generatePDF(data, documentType, quality);
       console.log('generatePDF completed, blob size:', blob.size);
       
       return { blob, filename };

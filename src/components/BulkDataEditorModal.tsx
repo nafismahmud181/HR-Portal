@@ -17,6 +17,7 @@ interface BulkDataEditorModalProps {
   mappingOptions?: MappingOption[];
   onClose: () => void;
   onConfirm: (rows: Array<Record<string, string>>, mapping: Record<string, string>) => void;
+  onGenerate?: (rows: Array<Record<string, string>>, mapping: Record<string, string>) => void;
 }
 
 function BulkDataEditorModal({
@@ -26,6 +27,7 @@ function BulkDataEditorModal({
   mappingOptions = [],
   onClose,
   onConfirm,
+  onGenerate,
 }: BulkDataEditorModalProps) {
   const [rows, setRows] = useState<Array<Record<string, string>>>(initialRows);
   const [colWidths, setColWidths] = useState<Record<string, number>>({});
@@ -210,6 +212,15 @@ function BulkDataEditorModal({
             <button onClick={onClose} className="px-4 py-2 rounded-md bg-gray-100" type="button">
               Cancel
             </button>
+            {onGenerate && (
+              <button
+                onClick={() => onGenerate(rows, mappingByColumn)}
+                className="px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
+                type="button"
+              >
+                Generate
+              </button>
+            )}
             <button
               onClick={() => onConfirm(rows, mappingByColumn)}
               className="px-4 py-2 rounded-md bg-purple-600 text-white hover:bg-purple-700"
