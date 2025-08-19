@@ -12,6 +12,7 @@ import { generatePDF } from "./PDFGenerator";
 import SideNavbar from "./SideNavbar";
 import PortalRightSidebar from "./PortalRightSidebar";
 import DriveStylePickerModal from "./DriveStylePickerModal";
+import BulkDataEditorModal from "./BulkDataEditorModal";
 import type { TemplateKey } from "./templates/TemplateRegistry";
 import { templates } from "./templates/TemplateRegistry";
 import { documentService } from "../services/documentService";
@@ -52,6 +53,9 @@ const HRPortal = () => {
   const [qualityLevel, setQualityLevel] = useState<QualityLevel>("high");
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
   const [showBulkModal, setShowBulkModal] = useState<boolean>(false);
+  const [showEditor, setShowEditor] = useState<boolean>(false);
+  const [editorColumns, setEditorColumns] = useState<Array<{ key: string; label: string }>>([]);
+  const [editorRows, setEditorRows] = useState<Array<Record<string, string>>>([]);
   const [recentUploads, setRecentUploads] = useState<Array<{ id: string; name: string; url: string; type: string }>>([]);
   const [loadingRecent, setLoadingRecent] = useState<boolean>(false);
   const [formData, setFormData] = useState<FormData>({
@@ -167,6 +171,40 @@ const HRPortal = () => {
     return rows;
   };
 
+  // Raw parsers for previewing uploaded file directly in the grid (no mapping)
+  const parseCsvRaw = (csv: string): { columns: string[]; rows: Array<Record<string, string>> } => {
+    const lines = csv.trim().split(/\r?\n/);
+    if (lines.length < 2) return { columns: [], rows: [] };
+    const headers = lines[0].split(",").map((h) => h.trim().replace(/^"|"$/g, ""));
+    const rows: Array<Record<string, string>> = [];
+    for (let i = 1; i < lines.length; i++) {
+      if (!lines[i].trim()) continue;
+      const raw = lines[i].split(",").map((c) => c.trim().replace(/^"|"$/g, ""));
+      const row: Record<string, string> = {};
+      headers.forEach((h, idx) => {
+        row[h] = raw[idx] ?? "";
+      });
+      rows.push(row);
+    }
+    return { columns: headers, rows };
+  };
+
+  const parseExcelRaw = async (file: File): Promise<{ columns: string[]; rows: Array<Record<string, string>> }> => {
+    const buffer = await file.arrayBuffer();
+    const XLSX = await import("xlsx");
+    const workbook = XLSX.read(buffer, { type: "array" });
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+    const json: Array<Record<string, unknown>> = XLSX.utils.sheet_to_json(worksheet, { raw: false });
+    const columns = json.length ? Object.keys(json[0]) : [];
+    const rows = json.map((r) => {
+      const out: Record<string, string> = {};
+      columns.forEach((k: string) => (out[k] = String((r[k] as unknown) ?? "")));
+      return out;
+    });
+    return { columns, rows };
+  };
+
   const parseExcelToRows = async (file: File): Promise<FormData[]> => {
     try {
       const buffer = await file.arrayBuffer();
@@ -175,7 +213,8 @@ const HRPortal = () => {
       const workbook = XLSX.read(buffer, { type: "array" });
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
-      const json: Array<Record<string, unknown>> = XLSX.utils.sheet_to_json(worksheet);
+      // Use first row as header (default behavior); ensure stringified values
+      const json: Array<Record<string, unknown>> = XLSX.utils.sheet_to_json(worksheet, { raw: false });
 
       const rows: FormData[] = json.map((obj) => {
         const row = obj as Record<string, unknown>;
@@ -967,10 +1006,26 @@ ${formData.contactEmail}`;
           recent={recentUploads}
           loadingRecent={loadingRecent}
           onExcelSelected={(file) => {
-            // Reuse existing bulk loader
-            const syntheticEvent = { target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>;
-            // Decide by extension in our unified handler
-            handleBulkFileChange(syntheticEvent);
+            (async () => {
+              if (currentUser?.uid) {
+                try {
+                  const upload = await documentService.uploadUserAsset(currentUser.uid, file);
+                  setRecentUploads((prev) => [{ id: upload.id!, name: upload.fileName, url: upload.downloadUrl, type: upload.fileType }, ...prev]);
+                } catch { /* ignore */ }
+              }
+              const name = file.name.toLowerCase();
+              if (name.endsWith(".csv")) {
+                const text = await file.text();
+                const { columns, rows } = parseCsvRaw(text);
+                setEditorColumns(columns.map((k) => ({ key: k, label: k })));
+                setEditorRows(rows);
+              } else {
+                const { columns, rows } = await parseExcelRaw(file);
+                setEditorColumns(columns.map((k) => ({ key: k, label: k })));
+                setEditorRows(rows);
+              }
+              setShowEditor(true);
+            })();
           }}
           onSvgSelected={(file) => {
             const reader = new FileReader();
@@ -984,22 +1039,19 @@ ${formData.contactEmail}`;
           }}
         />
       )}
-      {showBulkModal && (
-        <script
-          // Inject recent uploads to the modal via a custom event; avoids tight coupling
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function(){
-                const detail = ${JSON.stringify(
-                  (recentUploads || []).map((u) => ({ id: u.id, name: u.name, url: u.url, type: u.type }))
-                )};
-                const evt = new CustomEvent('__portal_recent_uploads__', { detail });
-                window.dispatchEvent(evt);
-              })();
-            `,
+      {showEditor && (
+        <BulkDataEditorModal
+          title="Add data"
+          columns={editorColumns}
+          initialRows={editorRows}
+          onClose={() => setShowEditor(false)}
+          onConfirm={(rows) => {
+            setBulkRows(rows as unknown as FormData[]);
+            setShowEditor(false);
           }}
         />
       )}
+      {/* custom event injection removed; modal now receives props directly */}
     </div>
   );
 };
