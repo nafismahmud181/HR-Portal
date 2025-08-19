@@ -1054,9 +1054,25 @@ ${formData.contactEmail}`;
           title="Add data"
           columns={editorColumns}
           initialRows={editorRows}
+          mappingOptions={[
+            { key: "employeeName", label: "Employee Name" },
+            { key: "joiningDate", label: "Joining Date" },
+            { key: "salary", label: "Salary" },
+            { key: "currency", label: "Currency" },
+            { key: "position", label: "Position" },
+            { key: "companyName", label: "Company Name" },
+            { key: "signatoryName", label: "Signatory Name" },
+            { key: "signatoryTitle", label: "Signatory Title" },
+            { key: "contactPhone", label: "Contact Phone" },
+            { key: "contactEmail", label: "Contact Email" },
+            { key: "website", label: "Website" },
+          ]}
           onClose={() => setShowEditor(false)}
           onConfirm={(rows) => {
+            // Keep the raw rows for generation; mapping can be used later to transform into FormData
             setBulkRows(rows as unknown as FormData[]);
+            // Optionally persist the mapping to apply during generation in the future
+            // For now, just close the editor
             setShowEditor(false);
           }}
         />
