@@ -27,6 +27,7 @@ const AuthPage = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    orgName: '',
     agreeToTerms: false
   });
 
@@ -94,12 +95,11 @@ const AuthPage = () => {
     setIsSubmitting(true);
     
     try {
-      await signup(formData.email, formData.password, formData.name);
-      setSuccess('Account created successfully! Please check your email for verification.');
+      await signup(formData.email, formData.password, formData.name, formData.orgName);
+      setSuccess('Account created successfully! Redirecting to templates...');
       setTimeout(() => {
-        setActiveTab('login');
-        setSuccess('');
-      }, 3000);
+        navigate('/templates');
+      }, 2000);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create account';
       setError(errorMessage);
@@ -291,6 +291,29 @@ const AuthPage = () => {
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     placeholder="Enter your full name"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Organization Name Input */}
+              <div className="space-y-2">
+                <label htmlFor="orgName" className="text-sm font-medium text-gray-700">
+                  Organization Name
+                </label>
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <input
+                    id="orgName"
+                    type="text"
+                    value={formData.orgName}
+                    onChange={(e) => handleInputChange('orgName', e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="Enter your organization name"
                     required
                   />
                 </div>
