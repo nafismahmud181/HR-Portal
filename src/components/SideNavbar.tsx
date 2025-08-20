@@ -68,10 +68,10 @@ const SideNavbar = ({ currentPage }: SideNavbarProps) => {
     },
     {
       id: 'settings',
-      label: 'Settings',
+      label: 'Organization Settings',
       icon: <Settings className="w-5 h-5 text-gray-600" />,
-      href: '#',
-      isActive: false
+      href: '/organization-settings',
+      isActive: currentPage === 'organization-settings'
     },
     {
       id: 'help',
@@ -123,23 +123,43 @@ const SideNavbar = ({ currentPage }: SideNavbarProps) => {
       <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
         <div className="space-y-2">
           {bottomNavItems.map((item) => (
-            <a
-              key={item.id}
-              href={item.href}
-              className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                item.isActive
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-              }`}
-              title={item.label}
-            >
-              <div className={item.isActive ? 'text-blue-700' : 'text-gray-600'}>
-                {React.cloneElement(item.icon, { 
-                  className: `w-5 h-5 ${item.isActive ? 'text-blue-700' : 'text-gray-600'}`
-                })}
-              </div>
-              <span className="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">{item.label}</span>
-            </a>
+            item.href === '#' ? (
+              <a
+                key={item.id}
+                href={item.href}
+                className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                  item.isActive
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+                title={item.label}
+              >
+                <div className={item.isActive ? 'text-blue-700' : 'text-gray-600'}>
+                  {React.cloneElement(item.icon, { 
+                    className: `w-5 h-5 ${item.isActive ? 'text-blue-700' : 'text-gray-600'}`
+                  })}
+                </div>
+                <span className="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">{item.label}</span>
+              </a>
+            ) : (
+              <Link
+                key={item.id}
+                to={item.href}
+                className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                  item.isActive
+                    ? 'bg-blue-50 text-blue-700'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+                title={item.label}
+              >
+                <div className={item.isActive ? 'text-blue-700' : 'text-gray-600'}>
+                  {React.cloneElement(item.icon, { 
+                    className: `w-5 h-5 ${item.isActive ? 'text-blue-700' : 'text-gray-600'}`
+                  })}
+                </div>
+                <span className="font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">{item.label}</span>
+              </Link>
+            )
           ))}
           
           {/* Logout */}
