@@ -298,6 +298,37 @@ export class DocumentService {
     });
     return uploads;
   }
+
+  // Delete an uploaded file from both Firestore and Storage
+  async deleteUserUpload(uploadId: string): Promise<void> {
+    try {
+      // First, get the upload record to find the storage path
+      const uploadRef = doc(this.db, 'uploads', uploadId);
+      const uploadSnap = await getDoc(uploadRef);
+      
+      if (!uploadSnap.exists()) {
+        throw new Error('Upload record not found');
+      }
+      
+      const uploadData = uploadSnap.data() as UploadRecord;
+      
+      // Delete from Firestore
+      await deleteDoc(uploadRef);
+      
+      // Delete from Storage
+      if (uploadData.storagePath) {
+        try {
+          const storageRef = ref(this.storage, uploadData.storagePath);
+          await deleteObject(storageRef);
+        } catch (storageError) {
+          // Log storage deletion error but don't fail the operation
+          console.error('Error deleting file from storage:', storageError);
+        }
+      }
+    } catch (error) {
+      throw new Error('Failed to delete upload: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
+  }
 }
 
 export const documentService = new DocumentService();

@@ -7,7 +7,9 @@ interface DriveStylePickerModalProps {
   onClose: () => void;
   onExcelSelected: (file: File) => void;
   onSvgSelected: (file: File) => void;
-  recent: Array<{ id: string; name: string; url: string; type: string }>;
+  onOpenRecent: (file: { id: string; name: string; url: string; type: string; storagePath: string }) => void;
+  onDeleteRecent: (fileId: string) => void;
+  recent: Array<{ id: string; name: string; url: string; type: string; storagePath: string }>;
   loadingRecent: boolean;
 }
 
@@ -15,6 +17,8 @@ const DriveStylePickerModal: React.FC<DriveStylePickerModalProps> = ({
   onClose,
   onExcelSelected,
   onSvgSelected,
+  onOpenRecent,
+  onDeleteRecent,
   recent,
   loadingRecent,
 }) => {
@@ -114,17 +118,39 @@ const DriveStylePickerModal: React.FC<DriveStylePickerModalProps> = ({
                 </div>
               ) : (
                 <div className="grid grid-cols-4 gap-4">
-                  {recent.map((file: { id: string; name: string; url: string }) => (
-                    <a
+                  {recent.map((file: { id: string; name: string; url: string; type: string; storagePath: string }) => (
+                    <div
                       key={file.id}
-                      href={file.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="bg-white border border-gray-200 rounded-md p-3 hover:shadow-sm"
+                      className="bg-white border border-gray-200 rounded-md p-3 hover:shadow-sm relative group"
                     >
-                      <div className="h-28 bg-gray-100 rounded mb-3" />
-                      <div className="text-sm text-gray-800 truncate">{file.name}</div>
-                    </a>
+                      {/* Delete button */}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onDeleteRecent(file.id);
+                        }}
+                        className="absolute top-2 right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
+                        title="Delete file"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                      
+                      {/* File content - clickable to open */}
+                      <div
+                        onClick={() => onOpenRecent(file)}
+                        className="cursor-pointer"
+                      >
+                        <div className="h-28 bg-gray-100 rounded mb-3 flex items-center justify-center">
+                          {file.type.includes('csv') || file.type.includes('excel') || file.type.includes('spreadsheet') ? (
+                            <FileSpreadsheet className="w-8 h-8 text-green-600" />
+                          ) : (
+                            <div className="text-xs text-gray-500 text-center px-2">File</div>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-800 truncate">{file.name}</div>
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}

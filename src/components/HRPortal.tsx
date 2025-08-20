@@ -18,6 +18,8 @@ import type { TemplateKey } from "./templates/TemplateRegistry";
 import { templates } from "./templates/TemplateRegistry";
 import { documentService } from "../services/documentService";
 import { useAuth } from "../contexts/AuthContext";
+import { ref, getBytes } from "firebase/storage";
+import { storage } from "../firebase/config";
 
 // Define types for better type safety
 type QualityLevel = "standard" | "high" | "ultra";
@@ -62,7 +64,7 @@ const HRPortal = () => {
   const [editorColumns, setEditorColumns] = useState<Array<{ key: string; label: string }>>([]);
   const [editorRows, setEditorRows] = useState<Array<Record<string, string>>>([]);
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
-  const [recentUploads, setRecentUploads] = useState<Array<{ id: string; name: string; url: string; type: string }>>([]);
+  const [recentUploads, setRecentUploads] = useState<Array<{ id: string; name: string; url: string; type: string; storagePath: string }>>([]);
   const [loadingRecent, setLoadingRecent] = useState<boolean>(false);
   const [formData, setFormData] = useState<FormData>({
     employeeName: "",
@@ -1084,7 +1086,7 @@ ${formData.contactEmail}`;
             try {
               setLoadingRecent(true);
               const uploads = await documentService.getUserUploads(currentUser.uid);
-              setRecentUploads(uploads.map(u => ({ id: u.id!, name: u.fileName, url: u.downloadUrl, type: u.fileType })));
+              setRecentUploads(uploads.map(u => ({ id: u.id!, name: u.fileName, url: u.downloadUrl, type: u.fileType, storagePath: u.storagePath })));
             } finally {
               setLoadingRecent(false);
             }
@@ -1097,6 +1099,48 @@ ${formData.contactEmail}`;
           onClose={() => setShowBulkModal(false)}
           recent={recentUploads}
           loadingRecent={loadingRecent}
+          onOpenRecent={(file) => {
+            (async () => {
+              // Close picker immediately for a smoother UX
+              setShowBulkModal(false);
+
+              try {
+                // Fetch file content from Firebase Storage
+                const storageRef = ref(storage, file.storagePath);
+                const fileBytes = await getBytes(storageRef);
+                
+                // Create a File object from the bytes
+                const blob = new Blob([fileBytes], { type: file.type });
+                const fileObj = new File([blob], file.name, { type: file.type });
+
+                const name = file.name.toLowerCase();
+                if (name.endsWith(".csv")) {
+                  const text = await fileObj.text();
+                  const { columns, rows } = parseCsvRaw(text);
+                  setEditorColumns(columns.map((k: string) => ({ key: k, label: k })));
+                  setEditorRows(rows);
+                } else {
+                  const { columns, rows } = await parseExcelRaw(fileObj);
+                  setEditorColumns(columns.map((k: string) => ({ key: k, label: k })));
+                  setEditorRows(rows);
+                }
+                setShowEditor(true);
+              } catch (error) {
+                console.error('Error opening recent file:', error);
+                // You might want to show an error message to the user here
+              }
+            })();
+          }}
+          onDeleteRecent={async (fileId) => {
+            try {
+              await documentService.deleteUserUpload(fileId);
+              // Remove from local state
+              setRecentUploads(prev => prev.filter(file => file.id !== fileId));
+            } catch (error) {
+              console.error('Error deleting file:', error);
+              // You might want to show an error message to the user here
+            }
+          }}
           onExcelSelected={(file) => {
             (async () => {
               // Close picker immediately for a smoother UX
