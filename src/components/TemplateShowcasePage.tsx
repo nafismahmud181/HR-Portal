@@ -482,7 +482,7 @@ const TemplateShowcasePage = () => {
       {/* Main Content with Fixed Left Margin for Sidebar */}
       <div className="ml-20">
         {/* Navigation Header */}
-        <nav className="bg-white shadow-sm border-b w-full">
+        {/* <nav className="bg-white shadow-sm border-b w-full">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center space-x-3">
@@ -490,7 +490,7 @@ const TemplateShowcasePage = () => {
               </div>
             </div>
           </div>
-        </nav>
+        </nav> */}
 
         {/* Main Content */}
         <div className="p-6">

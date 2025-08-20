@@ -84,7 +84,7 @@ const HRPortal = () => {
   const [bulkRows, setBulkRows] = useState<FormData[]>([]);
   const [bulkStatus, setBulkStatus] = useState<string>("");
   const [isBulkGenerating, setIsBulkGenerating] = useState(false);
-  const [bulkProgress, setBulkProgress] = useState<{ current: number; total: number }>({ current: 0, total: 0 });
+
   const [showGenerationProgress, setShowGenerationProgress] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [totalDocuments, setTotalDocuments] = useState(0);
@@ -237,7 +237,7 @@ const HRPortal = () => {
     console.log('✅ All validations passed, starting generation');
 
     setIsBulkGenerating(true);
-    setBulkProgress({ current: 0, total: bulkRows.length });
+
     setBulkStatus("Starting bulk generation...");
     
     try {
@@ -297,7 +297,7 @@ const HRPortal = () => {
 
       for (let i = 0; i < rowsForGeneration.length; i++) {
         const row = rowsForGeneration[i];
-        setBulkProgress({ current: i + 1, total: rowsForGeneration.length });
+
         setGenerationProgress(i + 1);
         
         try {
@@ -372,7 +372,7 @@ const HRPortal = () => {
       setBulkStatus("Bulk generation failed: " + String(error));
     } finally {
       setIsBulkGenerating(false);
-      setBulkProgress({ current: 0, total: 0 });
+
       console.log('Generation completed, keeping popup open for user to close manually');
       // Don't auto-close the popup - let user close it manually to see results
     }
@@ -695,7 +695,7 @@ ${formData.contactEmail}`;
       {/* Main Content with Fixed Left Margin and right sidebar margin */}
       <div className={`ml-20 ${sidebarCollapsed ? "mr-16" : "mr-60"}`}>
         {/* Navigation Header */}
-        <nav className="bg-white shadow-sm border-b">
+        {/* <nav className="bg-white shadow-sm border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center space-x-3">
@@ -705,7 +705,7 @@ ${formData.contactEmail}`;
               </div>
             </div>
           </div>
-        </nav>
+        </nav> */}
 
         <div className="p-6">
           <div className="max-w-7xl mx-auto">
@@ -1012,7 +1012,7 @@ ${formData.contactEmail}`;
                 </div>
               </div>
 
-              {/* Bulk Generator */}
+              {/* Bulk Generator - Hidden
               <div className="lg:col-span-3">
                 <div className="bg-white rounded-xl shadow-lg p-6">
                   <div className="flex items-center justify-between mb-4">
@@ -1073,6 +1073,7 @@ ${formData.contactEmail}`;
                   )}
                 </div>
               </div>
+              */}
             </div>
           </div>
         </div>
