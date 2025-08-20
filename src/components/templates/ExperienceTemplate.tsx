@@ -17,7 +17,7 @@ const ExperienceTemplate: React.FC<ExperienceTemplateProps> = ({ formData, forma
   return (
     <div>
       <div className="text-left mb-6">
-        <h1 className="text-xl font-bold mb-2">TO WHOM IT MAY CONCERN</h1>
+        <h1 className="text-3xl font-bold mb-2">TO WHOM IT MAY CONCERN</h1>
       </div>
       
       <div className="mb-4 text-left">

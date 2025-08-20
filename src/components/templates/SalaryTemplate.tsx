@@ -18,7 +18,7 @@ const SalaryTemplate: React.FC<SalaryTemplateProps> = ({ formData }) => {
   return (
     <div>
       <div className="text-left mb-6">
-        <h1 className="text-xl font-bold mb-2">SALARY CERTIFICATE</h1>
+        <h1 className="text-3xl font-bold mb-2">SALARY CERTIFICATE</h1>
       </div>
       
       <div className="mb-4 text-left">

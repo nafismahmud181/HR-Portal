@@ -47,68 +47,117 @@ export class PDFGenerator {
     }).replace(/\//g, '/');
   }
 
-  private generateLOE(data: TemplateData): string {
-    return `To Whom It May Concern:
-
-Dear Sir/Madam,
-
-This is to certify that ${data.employeeName ? `Mr./Ms. ${data.employeeName}` : '[Employee Name]'} is an employee at ${data.companyName}, and ${data.employeeName ? 'he/she' : 'they'} has been working as a ${data.position} since ${data.joiningDate ? this.formatDate(data.joiningDate) : '[Joining Date]'}. ${data.employeeName ? 'His/Her' : 'Their'} current salary is ${data.currency} ${data.salary || '[Salary Amount]'}, paid bi-weekly.
-
-If you have any questions regarding ${data.employeeName ? `${data.employeeName}'s` : 'the employee\'s'} employment, please contact our office at ${data.contactPhone} or ${data.contactEmail}.
-
-Signature Image
-
-${data.signatoryName || '[Signatory Name]'}
-
-${data.signatoryTitle}
-
-${data.contactEmail}
-
-${data.website}`;
+  private generateLOEHTML(data: TemplateData, scale: number = 1): string {
+    return `
+      <div style="text-align: left; font-family: 'Times New Roman', serif; color: #000;">
+        <div style="margin-bottom: ${24 * scale}px;">
+          <h1 style="font-size: ${24 * scale}px; font-weight: bold; margin: 0 0 ${8 * scale}px 0;">To Whom It May Concern:</h1>
+        </div>
+        
+        <div style="margin-bottom: ${16 * scale}px;">
+          <p style="margin: 0 0 ${16 * scale}px 0; line-height: 1.6; font-size: ${14 * scale}px;">Dear Sir/Madam,</p>
+          
+          <p style="margin: 0 0 ${16 * scale}px 0; line-height: 1.6; font-size: ${14 * scale}px;">
+            This is to certify that ${data.employeeName ? `Mr./Ms. ${data.employeeName}` : '[Employee Name]'} is an employee at ${data.companyName}, and ${data.employeeName ? 'he/she' : 'they'} has been working as a ${data.position} since ${data.joiningDate ? this.formatDate(data.joiningDate) : '[Joining Date]'}. ${data.employeeName ? 'His/Her' : 'Their'} current salary is ${data.currency} ${data.salary || '[Salary Amount]'}, paid bi-weekly.
+          </p>
+          
+          <p style="margin: 0 0 ${16 * scale}px 0; line-height: 1.6; font-size: ${14 * scale}px;">
+            If you have any questions regarding ${data.employeeName ? `${data.employeeName}'s` : 'the employee\'s'} employment, please contact our office at ${data.contactPhone} or ${data.contactEmail}.
+          </p>
+        </div>
+        
+        <div style="margin-top: ${32 * scale}px; text-align: left;">
+          ${data.signatureImage ? `
+            <div style="margin-bottom: ${16 * scale}px;">
+              <img src="${data.signatureImage}" alt="Signature" style="max-width: ${128 * scale}px; height: auto;" />
+            </div>
+          ` : ''}
+          <p style="margin: 0 0 ${4 * scale}px 0; font-weight: 600; line-height: 1.6; font-size: ${14 * scale}px;">${data.signatoryName || '[Signatory Name]'}</p>
+          <p style="margin: 0 0 ${4 * scale}px 0; line-height: 1.6; font-size: ${14 * scale}px;">${data.signatoryTitle}</p>
+          <p style="margin: 0 0 ${4 * scale}px 0; line-height: 1.6; font-size: ${14 * scale}px;">${data.contactEmail}</p>
+          <p style="margin: 0; line-height: 1.6; font-size: ${14 * scale}px;">${data.website}</p>
+        </div>
+      </div>
+    `;
   }
 
-  private generateExperienceCert(data: TemplateData): string {
-    return `TO WHOM IT MAY CONCERN
-
-This is to certify that ${data.employeeName ? `Mr./Ms. ${data.employeeName}` : '[Employee Name]'} has been working with ${data.companyName} as ${data.position} since ${data.joiningDate ? this.formatDate(data.joiningDate) : '[Joining Date]'}.
-
-During ${data.employeeName ? 'his/her' : 'their'} tenure, ${data.employeeName ? 'he/she' : 'they'} has shown dedication, professionalism, and excellent work performance.
-
-We wish ${data.employeeName ? 'him/her' : 'them'} all the best for future endeavors.
-
-Signature Image
-
-${data.signatoryName || '[Signatory Name]'}
-
-${data.signatoryTitle}
-
-${data.companyName}`;
+  private generateExperienceHTML(data: TemplateData, scale: number = 1): string {
+    return `
+      <div style="text-align: left; font-family: 'Times New Roman', serif; color: #000;">
+        <div style="margin-bottom: ${24 * scale}px;">
+          <h1 style="font-size: ${24 * scale}px; font-weight: bold; margin: 0 0 ${8 * scale}px 0;">TO WHOM IT MAY CONCERN</h1>
+        </div>
+        
+        <div style="margin-bottom: ${16 * scale}px;">
+          <p style="margin: 0 0 ${16 * scale}px 0; line-height: 1.6; font-size: ${14 * scale}px;">
+            This is to certify that ${data.employeeName ? `Mr./Ms. ${data.employeeName}` : '[Employee Name]'} has been working with ${data.companyName} as ${data.position} since ${data.joiningDate ? this.formatDate(data.joiningDate) : '[Joining Date]'}.
+          </p>
+          
+          <p style="margin: 0 0 ${16 * scale}px 0; line-height: 1.6; font-size: ${14 * scale}px;">
+            During ${data.employeeName ? 'his/her' : 'their'} tenure, ${data.employeeName ? 'he/she' : 'they'} has shown dedication, professionalism, and excellent work performance.
+          </p>
+          
+          <p style="margin: 0 0 ${16 * scale}px 0; line-height: 1.6; font-size: ${14 * scale}px;">
+            We wish ${data.employeeName ? 'him/her' : 'them'} all the best for future endeavors.
+          </p>
+        </div>
+        
+        <div style="margin-top: ${32 * scale}px; text-align: left;">
+          ${data.signatureImage ? `
+            <div style="margin-bottom: ${16 * scale}px;">
+              <img src="${data.signatureImage}" alt="Signature" style="max-width: ${128 * scale}px; height: auto;" />
+            </div>
+          ` : ''}
+          <p style="margin: 0 0 ${4 * scale}px 0; font-weight: 600; line-height: 1.6; font-size: ${14 * scale}px;">${data.signatoryName || '[Signatory Name]'}</p>
+          <p style="margin: 0 0 ${4 * scale}px 0; line-height: 1.6; font-size: ${14 * scale}px;">${data.signatoryTitle}</p>
+          <p style="margin: 0; line-height: 1.6; font-size: ${14 * scale}px;">${data.companyName}</p>
+        </div>
+      </div>
+    `;
   }
 
-  private generateSalaryCert(data: TemplateData): string {
-    return `SALARY CERTIFICATE
-
-This is to certify that ${data.employeeName ? `Mr./Ms. ${data.employeeName}` : '[Employee Name]'} is currently employed with ${data.companyName} as ${data.position}.
-
-${data.employeeName ? 'His/Her' : 'Their'} current monthly salary is ${data.currency} ${data.salary || '[Salary Amount]'}.
-
-This certificate is being issued upon ${data.employeeName ? 'his/her' : 'their'} request.
-
-${data.signatoryName || '[Signatory Name]'}
-
-${data.signatoryTitle}
-
-${data.companyName}
-
-${data.contactEmail}`;
+  private generateSalaryHTML(data: TemplateData, scale: number = 1): string {
+    return `
+      <div style="text-align: left; font-family: 'Times New Roman', serif; color: #000;">
+        <div style="margin-bottom: ${24 * scale}px;">
+          <h1 style="font-size: ${24 * scale}px; font-weight: bold; margin: 0 0 ${8 * scale}px 0;">SALARY CERTIFICATE</h1>
+        </div>
+        
+        <div style="margin-bottom: ${16 * scale}px;">
+          <p style="margin: 0 0 ${16 * scale}px 0; line-height: 1.6; font-size: ${14 * scale}px;">
+            This is to certify that ${data.employeeName ? `Mr./Ms. ${data.employeeName}` : '[Employee Name]'} is currently employed with ${data.companyName} as ${data.position}.
+          </p>
+          
+          <p style="margin: 0 0 ${16 * scale}px 0; line-height: 1.6; font-size: ${14 * scale}px;">
+            ${data.employeeName ? 'His/Her' : 'Their'} current monthly salary is ${data.currency} ${data.salary || '[Salary Amount]'}.
+          </p>
+          
+          <p style="margin: 0 0 ${16 * scale}px 0; line-height: 1.6; font-size: ${14 * scale}px;">
+            This certificate is being issued upon ${data.employeeName ? 'his/her' : 'their'} request.
+          </p>
+        </div>
+        
+        <div style="margin-top: ${32 * scale}px; text-align: left;">
+          ${data.signatureImage ? `
+            <div style="margin-bottom: ${16 * scale}px;">
+              <img src="${data.signatureImage}" alt="Signature" style="max-width: ${128 * scale}px; height: auto;" />
+            </div>
+          ` : ''}
+          <p style="margin: 0 0 ${4 * scale}px 0; font-weight: 600; line-height: 1.6; font-size: ${14 * scale}px;">${data.signatoryName || '[Signatory Name]'}</p>
+          <p style="margin: 0 0 ${4 * scale}px 0; line-height: 1.6; font-size: ${14 * scale}px;">${data.signatoryTitle}</p>
+          <p style="margin: 0 0 ${4 * scale}px 0; line-height: 1.6; font-size: ${14 * scale}px;">${data.companyName}</p>
+          <p style="margin: 0; line-height: 1.6; font-size: ${14 * scale}px;">${data.contactEmail}</p>
+        </div>
+      </div>
+    `;
   }
 
-  private getGeneratedContent(data: TemplateData, documentType: TemplateKey): string {
+  private getTemplateHTML(data: TemplateData, documentType: TemplateKey, scale: number = 1): string {
     switch (documentType) {
-      case 'loe': return this.generateLOE(data);
-      case 'experience': return this.generateExperienceCert(data);
-      case 'salary': return this.generateSalaryCert(data);
-      default: return this.generateLOE(data);
+      case 'loe': return this.generateLOEHTML(data, scale);
+      case 'experience': return this.generateExperienceHTML(data, scale);
+      case 'salary': return this.generateSalaryHTML(data, scale);
+      default: return this.generateLOEHTML(data, scale);
     }
   }
 
@@ -121,30 +170,7 @@ ${data.contactEmail}`;
     }
   }
 
-  private convertTextToHTML(text: string, data: TemplateData): string {
-    // Split text into paragraphs and add proper spacing
-    const paragraphs = text.split('\n\n');
-    let html = '';
-    
-    paragraphs.forEach((paragraph) => {
-      if (paragraph.trim() === '') return;
-      
-      // Check if this is the position where we want to insert the signature
-      if ((paragraph === 'Signature' || paragraph === 'Signature Image') && data.signatureImage) {
-        // Insert ONLY the signature image, without the "Signature Image" text
-        html += `<div style="margin: 0 0 ${32}px 0; text-align: center;">
-          <img src="${data.signatureImage}" alt="Signature" style="max-width: 300px; height: auto; margin-bottom: 16px;" />
-        </div>`;
-      } else if (paragraph !== 'Signature' && paragraph !== 'Signature Image') {
-        // Only add paragraph if it's not the signature placeholder text
-        html += `<p style="margin: 0 0 ${16}px 0; line-height: 1.6;">${paragraph.trim()}</p>`;
-      }
-      // If paragraph is 'Signature' or 'Signature Image' but no signature image is provided,
-      // we skip adding anything (neither text nor image)
-    });
-    
-    return html;
-  }
+
 
   async generatePDF(
     data: TemplateData,
@@ -178,51 +204,27 @@ ${data.contactEmail}`;
     tempDiv.style.padding = `${150 * scale}px ${80 * scale}px`; // Scale padding (increased top margin)
     tempDiv.style.boxSizing = 'border-box';
 
-    // Add content with proper HTML formatting
-    const content = this.getGeneratedContent(data, documentType);
-    tempDiv.innerHTML = this.convertTextToHTML(content, data);
+    // Generate the HTML template with proper scaling
+    const templateHTML = this.getTemplateHTML(data, documentType, scale);
+    tempDiv.innerHTML = templateHTML;
 
     // Add to DOM temporarily
     document.body.appendChild(tempDiv);
 
     try {
-      // Convert to canvas with high quality settings
+      // Convert to canvas with MINIMAL interference
       const canvas = await html2canvas(tempDiv, {
         width: width,
         height: height,
-        scale: 1, // We're already scaling the div, so keep this at 1
+        scale: 1,
         useCORS: true,
         allowTaint: true,
         backgroundColor: null,
-        logging: false, // Disable logging for better performance
-        imageTimeout: 15000, // Increase timeout for large images
-        removeContainer: true, // Automatically remove temporary elements
-        foreignObjectRendering: false, // Better compatibility
-        // Enhanced quality settings
-        onclone: (clonedDoc) => {
-          // Ensure the cloned document has the same styling
-          const clonedDiv = clonedDoc.querySelector('div') as HTMLElement;
-          if (clonedDiv) {
-            clonedDiv.style.fontFamily = 'Times New Roman, serif';
-            clonedDiv.style.fontSize = `${14 * scale}px`;
-            clonedDiv.style.lineHeight = `${1.6 * scale}px`;
-            
-            // Apply proper spacing to all paragraphs
-            const paragraphs = clonedDiv.querySelectorAll('p');
-            paragraphs.forEach(p => {
-              (p as HTMLElement).style.margin = `0 0 ${16 * scale}px 0`;
-              (p as HTMLElement).style.lineHeight = `${1.6 * scale}px`;
-              (p as HTMLElement).style.fontSize = `${14 * scale}px`;
-            });
-            
-            // Scale signature image if present
-            const signatureImg = clonedDiv.querySelector('img') as HTMLImageElement;
-            if (signatureImg) {
-              signatureImg.style.maxWidth = `${300 * scale}px`;
-              signatureImg.style.marginBottom = `${16 * scale}px`;
-            }
-          }
-        }
+        logging: false,
+        imageTimeout: 15000,
+        removeContainer: true,
+        foreignObjectRendering: false,
+        // REMOVE ALL ONCLONE INTERFERENCE - let styles work naturally
       });
 
       // Remove temporary div
@@ -239,9 +241,6 @@ ${data.contactEmail}`;
       
       // Get the PDF as a blob
       const pdfBlob = pdf.output('blob');
-      
-      // Note: Removed automatic pdf.save() to prevent individual downloads during bulk generation
-      // Individual downloads should be handled by the calling code when needed
       
       return pdfBlob;
     } catch (error) {

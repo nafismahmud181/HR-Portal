@@ -22,7 +22,7 @@ const LOETemplate: React.FC<LOETemplateProps> = ({ formData, formatDate }) => {
   return (
     <div>
       <div className="text-left mb-6">
-        <h1 className="text-xl font-bold mb-2">To Whom It May Concern:</h1>
+      <h1 className="text-2xl font-bold mb-2">To Whom It May Concern:</h1>
       </div>
       
       <div className="text-left mb-4">
