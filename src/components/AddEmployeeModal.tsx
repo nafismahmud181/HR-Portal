@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X, User, Mail, Phone, Building, Briefcase, Calendar, DollarSign, MapPin, Upload, Camera, X as CloseIcon } from 'lucide-react';
 import { employeeService } from '../services/employeeService';
+import { departmentService } from '../services/departmentService';
 import { storage } from '../firebase/config';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '../contexts/AuthContext';
@@ -32,18 +33,43 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const departments = [
-    'Human Resources', 'Engineering', 'Marketing', 'Finance', 
-    'Product', 'Sales', 'Operations', 'IT', 'Legal', 'Customer Support'
-  ];
-
-  const roles = [
-    'Manager', 'Director', 'Engineer', 'Analyst', 'Coordinator', 
-    'Specialist', 'Executive', 'Assistant', 'Consultant', 'Intern'
-  ];
+  
+  // Dynamic data states
+  const [departments, setDepartments] = useState<Array<{ id: string; name: string }>>([]);
+  const [roles, setRoles] = useState<string[]>([]);
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
   const statuses = ['Available', 'Working Remotely', 'On Leave', 'Terminated'];
+
+  // Fetch departments and roles when modal opens
+  useEffect(() => {
+    if (isOpen && currentUser) {
+      loadOrganizationData();
+    }
+  }, [isOpen, currentUser]);
+
+  const loadOrganizationData = async () => {
+    if (!currentUser) return;
+    
+    setIsLoadingData(true);
+    setError(null);
+    
+    try {
+      // Load departments from the organization
+      const orgDepartments = await departmentService.getDepartments(currentUser.uid);
+      setDepartments(orgDepartments.map(dept => ({ id: dept.id!, name: dept.name })));
+      
+      // Load roles from the organization (you can customize this based on your needs)
+      const orgRoles = await employeeService.getRoles(currentUser.uid);
+      setRoles(orgRoles);
+      
+    } catch (error) {
+      console.error('Error loading organization data:', error);
+      setError('Failed to load department and role data. Please try again.');
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -150,6 +176,14 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
           {error && (
             <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
+          
+          {isLoadingData && (
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-700">
+                Loading organization data...
+              </p>
             </div>
           )}
 
@@ -300,12 +334,26 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
                   onChange={(e) => handleInputChange('department', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
+                  disabled={isLoadingData}
                 >
-                  <option value="">Select Department</option>
-                  {departments.map(dept => (
-                    <option key={dept} value={dept}>{dept}</option>
-                  ))}
+                  <option value="">
+                    {isLoadingData ? 'Loading departments...' : 'Select Department'}
+                  </option>
+                  {departments.length === 0 && !isLoadingData ? (
+                    <option value="" disabled>No departments available</option>
+                  ) : (
+                    departments.map(dept => (
+                      <option key={dept.id} value={dept.name}>{dept.name}</option>
+                    ))
+                  )}
                 </select>
+                {departments.length === 0 && !isLoadingData && (
+                  <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-sm text-yellow-700">
+                      No departments available. Please create departments first in Organization Settings.
+                    </p>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -319,11 +367,18 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
                   onChange={(e) => handleInputChange('role', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
+                  disabled={isLoadingData}
                 >
-                  <option value="">Select Role</option>
-                  {roles.map(role => (
-                    <option key={role} value={role}>{role}</option>
-                  ))}
+                  <option value="">
+                    {isLoadingData ? 'Loading roles...' : 'Select Role'}
+                  </option>
+                  {roles.length === 0 && !isLoadingData ? (
+                    <option value="" disabled>No roles available</option>
+                  ) : (
+                    roles.map(role => (
+                      <option key={role} value={role}>{role}</option>
+                    ))
+                  )}
                 </select>
               </div>
               <div>
@@ -342,6 +397,13 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
                     <option key={status} value={status}>{status}</option>
                   ))}
                 </select>
+                {roles.length === 0 && !isLoadingData && (
+                  <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-sm text-yellow-700">
+                      No roles available. Please create roles first in Employee Directory.
+                    </p>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -360,6 +422,21 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
               </div>
             </div>
           </div>
+
+          {/* Help Section - Show when no departments or roles */}
+          {(departments.length === 0 || roles.length === 0) && !isLoadingData && (
+            <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <h4 className="text-sm font-medium text-gray-800 mb-2">Setup Required</h4>
+              <div className="text-sm text-gray-600 space-y-1">
+                {departments.length === 0 && (
+                  <p>• Create departments in <strong>Organization Settings</strong> → Department Management</p>
+                )}
+                {roles.length === 0 && (
+                  <p>• Create roles in <strong>Employee Directory</strong> → Manage Roles</p>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Additional Information */}
           <div>
