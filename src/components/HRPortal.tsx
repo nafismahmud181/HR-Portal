@@ -693,7 +693,7 @@ ${formData.contactEmail}`;
       <SideNavbar currentPage="portal" />
 
       {/* Main Content with Fixed Left Margin and right sidebar margin */}
-      <div className={`ml-20 ${sidebarCollapsed ? "mr-16" : "mr-60"}`}>
+      <div className={`ml-20 ${sidebarCollapsed ? "mr-16" : "mr-80"}`}>
         {/* Navigation Header */}
         {/* <nav className="bg-white shadow-sm border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
