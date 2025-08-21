@@ -57,11 +57,11 @@ const LeaveManagementPage: React.FC = () => {
     try {
       setLoading(true);
       const [requests, balances, employeeList] = await Promise.all([
-        leaveService.getLeaveRequests(),
+        currentUser ? leaveService.getLeaveRequests(currentUser.uid) : Promise.resolve([]),
         currentUser
           ? leaveService.getLeaveBalances(currentUser.uid)
           : Promise.resolve([]),
-        employeeService.getEmployees(),
+        currentUser ? employeeService.getEmployees(currentUser.uid) : Promise.resolve([]),
       ]);
 
       setLeaveRequests(requests);
@@ -104,9 +104,13 @@ const LeaveManagementPage: React.FC = () => {
         reason: requestData.reason,
         status: "Pending",
         managerId: currentUser?.uid,
+        organizationId: '', // This will be set by the service
       };
 
-      await leaveService.createLeaveRequest(newLeaveRequest);
+      if (!currentUser) {
+        throw new Error('User not authenticated');
+      }
+      await leaveService.createLeaveRequest(newLeaveRequest, currentUser.uid);
       setShowCreateModal(false);
       loadData();
     } catch (error) {

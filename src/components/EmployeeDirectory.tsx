@@ -4,8 +4,10 @@ import SideNavbar from './SideNavbar';
 import AddEmployeeModal from './AddEmployeeModal';
 import DeleteEmployeeModal from './DeleteEmployeeModal';
 import { employeeService, type Employee, type EmployeeFilters } from '../services/employeeService';
+import { useAuth } from '../contexts/AuthContext';
 
 const EmployeeDirectory: React.FC = () => {
+  const { currentUser } = useAuth();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +42,11 @@ const EmployeeDirectory: React.FC = () => {
   const loadEmployees = async () => {
     try {
       setLoading(true);
-      const fetchedEmployees = await employeeService.getEmployees();
+      if (!currentUser) {
+        setError('User not authenticated');
+        return;
+      }
+      const fetchedEmployees = await employeeService.getEmployees(currentUser.uid);
       setEmployees(fetchedEmployees);
       setError(null);
     } catch (error) {
@@ -53,9 +59,10 @@ const EmployeeDirectory: React.FC = () => {
 
   const loadFilterOptions = async () => {
     try {
+      if (!currentUser) return;
       const [fetchedDepartments, fetchedRoles] = await Promise.all([
-        employeeService.getDepartments(),
-        employeeService.getRoles()
+        employeeService.getDepartments(currentUser.uid),
+        employeeService.getRoles(currentUser.uid)
       ]);
       setDepartments(fetchedDepartments);
       setRoles(fetchedRoles);
@@ -120,7 +127,11 @@ const EmployeeDirectory: React.FC = () => {
 
     try {
       setIsDeleting(true);
-      await employeeService.deleteEmployee(employeeToDelete.id!);
+      if (!currentUser) {
+        setError('User not authenticated');
+        return;
+      }
+      await employeeService.deleteEmployee(employeeToDelete.id!, currentUser.uid);
       
       // Close modal and refresh data
       setIsDeleteModalOpen(false);

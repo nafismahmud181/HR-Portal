@@ -3,6 +3,7 @@ import { X, User, Mail, Phone, Building, Briefcase, Calendar, DollarSign, MapPin
 import { employeeService } from '../services/employeeService';
 import { storage } from '../firebase/config';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useAuth } from '../contexts/AuthContext';
 
 interface AddEmployeeModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface AddEmployeeModalProps {
 }
 
 const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, onEmployeeAdded }) => {
+  const { currentUser } = useAuth();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -91,10 +93,16 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
     setError(null);
 
     try {
+      if (!currentUser) {
+        setError('User not authenticated');
+        return;
+      }
+
       // 1) Create employee record first
       const employeeId = await employeeService.addEmployee({
-        ...formData
-      });
+        ...formData,
+        organizationId: '' // This will be set by the service
+      }, currentUser.uid);
 
       // 2) If an image is selected, upload to Storage and save URL
       if (employeeImage) {
@@ -103,7 +111,7 @@ const AddEmployeeModal: React.FC<AddEmployeeModalProps> = ({ isOpen, onClose, on
         const storageRef = ref(storage, `employees/${employeeId}/avatar.jpg`);
         await uploadBytes(storageRef, blob);
         const downloadUrl = await getDownloadURL(storageRef);
-        await employeeService.updateEmployee(employeeId, { imageUrl: downloadUrl });
+        await employeeService.updateEmployee(employeeId, { imageUrl: downloadUrl }, currentUser.uid);
       }
 
       setFormData({
