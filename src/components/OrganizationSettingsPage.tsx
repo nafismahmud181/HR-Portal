@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { OrganizationService } from '../services/organizationService';
 import { StorageService } from '../services/storageService';
+import { departmentService, type Department } from '../services/departmentService';
 import {
   Building2,
   Users,
@@ -10,10 +11,12 @@ import {
   ArrowLeft,
   AlertCircle,
   CheckCircle,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Plus
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SideNavbar from './SideNavbar';
+import DepartmentManagementModal from './DepartmentManagementModal';
 
 interface OrganizationSettings {
   industry: string;
@@ -60,6 +63,15 @@ const OrganizationSettingsPage = () => {
   const [logoPreview, setLogoPreview] = useState<string>('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  
+  // Department management state
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [showDepartmentModal, setShowDepartmentModal] = useState(false);
+  const [departmentStats, setDepartmentStats] = useState({
+    totalDepartments: 0,
+    activeDepartments: 0,
+    totalEmployees: 0
+  });
 
   useEffect(() => {
     loadOrganizationData();
@@ -93,6 +105,9 @@ const OrganizationSettingsPage = () => {
         if (orgData.logoUrl) {
           setLogoPreview(orgData.logoUrl);
         }
+
+        // Load departments
+        await loadDepartments();
       } else {
         console.log('No organization data found for user');
         setError('No organization found. Please contact your administrator.');
@@ -102,6 +117,23 @@ const OrganizationSettingsPage = () => {
       setError('Failed to load organization data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadDepartments = async () => {
+    if (!currentUser) return;
+    
+    try {
+      const [deptList, stats] = await Promise.all([
+        departmentService.getDepartments(currentUser.uid),
+        departmentService.getDepartmentStats(currentUser.uid)
+      ]);
+      
+      setDepartments(deptList);
+      setDepartmentStats(stats);
+    } catch (error) {
+      console.error('Error loading departments:', error);
+      // Don't set error here as it's not critical for the main page
     }
   };
 
@@ -398,7 +430,128 @@ const OrganizationSettingsPage = () => {
             </div>
           </div>
         </div>
+
+        {/* Department Management Section */}
+        <div className="mt-8 bg-white rounded-lg shadow-sm border">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-medium text-gray-900">Department Management</h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Create and manage departments within your organization.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowDepartmentModal(true)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Manage Departments</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="p-6">
+            {/* Department Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <Building2 className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-blue-600">Total Departments</p>
+                    <p className="text-2xl font-bold text-blue-900">{departmentStats.totalDepartments}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-green-600">Active Departments</p>
+                    <p className="text-2xl font-bold text-green-900">{departmentStats.activeDepartments}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Users className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-purple-600">Total Employees</p>
+                    <p className="text-2xl font-bold text-purple-900">{departmentStats.totalEmployees}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Department List Preview */}
+            <div>
+              <h3 className="text-md font-medium text-gray-900 mb-3">Recent Departments</h3>
+              {departments.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
+                  <Building2 className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <p>No departments created yet</p>
+                  <p className="text-sm">Click "Manage Departments" to create your first department</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {departments.slice(0, 3).map((dept) => (
+                    <div
+                      key={dept.id}
+                      className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: dept.color || '#3B82F6' }}
+                        />
+                        <div>
+                          <h4 className="font-medium text-gray-900">{dept.name}</h4>
+                          <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
+                            <span className="flex items-center space-x-1">
+                              <Users className="w-3 h-3" />
+                              <span>{dept.employeeCount} employees</span>
+                            </span>
+                            <span className={`px-2 py-1 rounded-full ${
+                              dept.isActive 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {dept.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {departments.length > 3 && (
+                    <div className="text-center py-3 text-sm text-gray-500">
+                      <p>Showing 3 of {departments.length} departments</p>
+                      <p>Click "Manage Departments" to see all</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Department Management Modal */}
+      <DepartmentManagementModal
+        isOpen={showDepartmentModal}
+        onClose={() => setShowDepartmentModal(false)}
+        onRefresh={loadDepartments}
+        departments={departments}
+        userId={currentUser?.uid || ''}
+      />
     </div>
   );
 };
