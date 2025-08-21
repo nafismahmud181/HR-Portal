@@ -10,6 +10,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import TitleManager from './components/TitleManager';
 import OrganizationSettingsPage from './components/OrganizationSettingsPage';
+import ProfilePage from './components/ProfilePage';
 import './App.css';
 
 function App() {
@@ -49,6 +50,11 @@ function App() {
             <Route path="/organization-settings" element={
               <ProtectedRoute>
                 <OrganizationSettingsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <ProfilePage />
               </ProtectedRoute>
             } />
             <Route path="*" element={<Navigate to="/" replace />} />

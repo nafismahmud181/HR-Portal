@@ -63,8 +63,8 @@ const SideNavbar = ({ currentPage }: SideNavbarProps) => {
       id: 'profile',
       label: 'Profile',
       icon: <User className="w-5 h-5 text-gray-600" />,
-      href: '#',
-      isActive: false
+      href: '/profile',
+      isActive: currentPage === 'profile'
     },
     {
       id: 'settings',
