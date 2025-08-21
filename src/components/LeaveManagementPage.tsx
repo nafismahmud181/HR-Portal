@@ -40,6 +40,8 @@ const LeaveManagementPage: React.FC = () => {
   const [leaveBalances, setLeaveBalances] = useState<LeaveBalance[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(
     null
@@ -56,10 +58,11 @@ const LeaveManagementPage: React.FC = () => {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const [requests, balances, employeeList] = await Promise.all([
         currentUser ? leaveService.getLeaveRequests(currentUser.uid) : Promise.resolve([]),
         currentUser
-          ? leaveService.getLeaveBalances(currentUser.uid)
+          ? leaveService.getLeaveBalances(currentUser.uid, new Date().getFullYear(), currentUser.uid)
           : Promise.resolve([]),
         currentUser ? employeeService.getEmployees(currentUser.uid) : Promise.resolve([]),
       ]);
@@ -69,6 +72,7 @@ const LeaveManagementPage: React.FC = () => {
       setEmployees(employeeList);
     } catch (error) {
       console.error("Error loading data:", error);
+      setError(error instanceof Error ? error.message : "Failed to load data");
     } finally {
       setLoading(false);
     }
@@ -77,6 +81,14 @@ const LeaveManagementPage: React.FC = () => {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Clear messages when component unmounts
+  useEffect(() => {
+    return () => {
+      setError(null);
+      setSuccessMessage(null);
+    };
+  }, []);
 
   const handleCreateRequest = async (requestData: CreateLeaveFormData) => {
     try {
@@ -112,9 +124,13 @@ const LeaveManagementPage: React.FC = () => {
       }
       await leaveService.createLeaveRequest(newLeaveRequest, currentUser.uid);
       setShowCreateModal(false);
+      setSuccessMessage('Leave request created successfully!');
+      setError(null);
       loadData();
     } catch (error) {
       console.error("Error creating leave request:", error);
+      setError(error instanceof Error ? error.message : "Failed to create leave request");
+      setSuccessMessage(null);
     }
   };
 
@@ -126,10 +142,14 @@ const LeaveManagementPage: React.FC = () => {
           currentUser.uid,
           currentUser.displayName || undefined
         );
+        setSuccessMessage('Leave request approved successfully!');
+        setError(null);
         loadData();
       }
     } catch (error) {
       console.error("Error approving request:", error);
+      setError(error instanceof Error ? error.message : "Failed to approve request");
+      setSuccessMessage(null);
     }
   };
 
@@ -142,19 +162,31 @@ const LeaveManagementPage: React.FC = () => {
           reason,
           currentUser.displayName || undefined
         );
+        setSuccessMessage('Leave request rejected successfully!');
+        setError(null);
         loadData();
       }
     } catch (error) {
       console.error("Error rejecting request:", error);
+      setError(error instanceof Error ? error.message : "Failed to reject request");
+      setSuccessMessage(null);
     }
   };
 
   const handleDeleteRequest = async (requestId: string) => {
     try {
-      await leaveService.deleteLeaveRequest(requestId);
+      if (!currentUser) {
+        throw new Error('User not authenticated');
+      }
+      await leaveService.deleteLeaveRequest(requestId, currentUser.uid);
+      setSuccessMessage('Leave request deleted successfully!');
+      setError(null);
+      setConfirmDeleteId(null);
       loadData();
     } catch (error) {
       console.error("Error deleting request:", error);
+      setError(error instanceof Error ? error.message : "Failed to delete request");
+      setSuccessMessage(null);
     }
   };
 
@@ -261,6 +293,31 @@ const LeaveManagementPage: React.FC = () => {
               <span>New Leave Request</span>
             </button>
           </div>
+
+          {/* Error and Success Messages */}
+          {error && (
+            <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg flex justify-between items-center">
+              <span>{error}</span>
+              <button
+                onClick={() => setError(null)}
+                className="text-red-700 hover:text-red-900 font-bold text-xl"
+              >
+                ×
+              </button>
+            </div>
+          )}
+          
+          {successMessage && (
+            <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg flex justify-between items-center">
+              <span>{successMessage}</span>
+              <button
+                onClick={() => setSuccessMessage(null)}
+                className="text-green-700 hover:text-green-900 font-bold text-xl"
+              >
+                ×
+              </button>
+            </div>
+          )}
 
           {/* Tabs */}
           <div className="border-b border-gray-200 mb-6">

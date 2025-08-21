@@ -237,7 +237,7 @@ class LeaveService {
     }
   }
 
-  async deleteLeaveRequest(requestId: string): Promise<void> {
+  async deleteLeaveRequest(requestId: string, userId: string): Promise<void> {
     try {
       if (!this.db || Object.keys(this.db).length === 0) {
         throw new Error('Firestore is not properly configured');
@@ -256,7 +256,7 @@ class LeaveService {
         this.isBalanceTrackedType(existingRequest.leaveType)
       ) {
         const year = new Date(existingRequest.startDate).getFullYear();
-        const balances = await this.getLeaveBalances(existingRequest.employeeId, year, 'temp-user-id'); // TODO: Fix this to pass actual userId
+        const balances = await this.getLeaveBalances(existingRequest.employeeId, year, userId);
         const existingBalance = balances.find(b => b.leaveType === existingRequest.leaveType);
 
         const totalDaysAllowance = existingBalance?.totalDays ?? this.getDefaultAllowance(existingRequest.leaveType);
@@ -275,7 +275,7 @@ class LeaveService {
           remainingDays,
           year,
           organizationId: existingRequest.organizationId,
-        }, 'temp-user-id'); // TODO: Fix this to pass actual userId
+        }, userId);
       }
     } catch (error) {
       throw new Error('Failed to delete leave request: ' + (error instanceof Error ? error.message : 'Unknown error'));
@@ -299,7 +299,7 @@ class LeaveService {
       if (this.isBalanceTrackedType(request.leaveType)) {
         const year = new Date(request.startDate).getFullYear();
 
-        const existingBalances = await this.getLeaveBalances(request.employeeId, year, 'temp-user-id'); // TODO: Fix this to pass actual userId
+        const existingBalances = await this.getLeaveBalances(request.employeeId, year, managerId);
         const existing = existingBalances.find(b => b.leaveType === request.leaveType);
 
         const totalDaysAllowance = existing?.totalDays ?? this.getDefaultAllowance(request.leaveType);
@@ -317,7 +317,7 @@ class LeaveService {
           remainingDays,
           year,
           organizationId: request.organizationId,
-        }, 'temp-user-id'); // TODO: Fix this to pass actual userId
+        }, managerId);
       }
     } catch (error) {
       throw new Error('Failed to approve leave request: ' + (error instanceof Error ? error.message : 'Unknown error'));
