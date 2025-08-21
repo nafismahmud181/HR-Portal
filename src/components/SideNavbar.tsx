@@ -44,7 +44,7 @@ const SideNavbar = ({ currentPage }: SideNavbarProps) => {
     },
     {
       id: 'leave',
-      label: 'Leave Management',
+      label: 'Leave',
       icon: <Calendar className="w-5 h-5 text-gray-600" />,
       href: '/leave',
       isActive: currentPage === 'leave'
@@ -68,7 +68,7 @@ const SideNavbar = ({ currentPage }: SideNavbarProps) => {
     },
     {
       id: 'settings',
-      label: 'Organization Settings',
+      label: 'Organization',
       icon: <Settings className="w-5 h-5 text-gray-600" />,
       href: '/organization-settings',
       isActive: currentPage === 'organization-settings'
@@ -90,7 +90,7 @@ const SideNavbar = ({ currentPage }: SideNavbarProps) => {
           <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
             <FileText className="w-6 h-6 text-white" />
           </div>
-          <span className="text-xl font-bold text-gray-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300">HR Portal</span>
+          <span className="text-xl font-bold text-gray-900 opacity-0 group-hover:opacity-100 transition-opacity duration-100">Portal</span>
         </div>
       </div>
 

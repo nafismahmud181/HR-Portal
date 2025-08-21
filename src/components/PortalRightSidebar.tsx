@@ -19,7 +19,7 @@ import {
   FileText,
   Clock,
   Zap,
-  Users,
+
   Lightbulb,
   Rocket,
   CheckCircle,
@@ -165,11 +165,7 @@ const PortalRightSidebar: React.FC<PortalRightSidebarProps> = ({
     }
   ];
 
-  const quickStats = [
-    { label: "Documents Created", value: "24", icon: <FileText className="w-4 h-4" />, trend: "+12%" },
-    { label: "Templates Used", value: "8", icon: <Folder className="w-4 h-4" />, trend: "+5%" },
-    { label: "Team Members", value: "6", icon: <Users className="w-4 h-4" />, trend: "+2" }
-  ];
+
 
   const recentActivity = [
     { action: "Generated LOE", time: "2 min ago", status: "success" },
@@ -246,21 +242,7 @@ const PortalRightSidebar: React.FC<PortalRightSidebarProps> = ({
             </button>
           </div>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-3 gap-3">
-            {quickStats.map((stat, index) => (
-              <div key={index} className="text-center p-2 bg-white rounded-lg border border-gray-100">
-                <div className="flex items-center justify-center mb-1">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                    {stat.icon}
-                  </div>
-                </div>
-                <p className="text-xs text-gray-600">{stat.label}</p>
-                <p className="text-sm font-semibold text-gray-900">{stat.value}</p>
-                <p className="text-xs text-green-600">{stat.trend}</p>
-              </div>
-            ))}
-          </div>
+
         </div>
 
         {/* Content */}

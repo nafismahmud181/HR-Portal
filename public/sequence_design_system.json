@@ -1,0 +1,215 @@
+{
+  "designSystem": {
+    "name": "Sequence Financial Dashboard",
+    "version": "1.0",
+    "description": "Modern financial dashboard design system with clean, professional aesthetics and data-focused UI components"
+  },
+  "colorPalette": {
+    "primary": {
+      "teal": "#2D9A87",
+      "darkTeal": "#1F6B5C",
+      "lightTeal": "#3DB39F"
+    },
+    "accent": {
+      "brightGreen": "#00D084",
+      "emeraldGreen": "#00C878"
+    },
+    "neutral": {
+      "darkGray": "#2A2D35",
+      "mediumGray": "#4A5568",
+      "lightGray": "#F7FAFC",
+      "white": "#FFFFFF",
+      "borderGray": "#E2E8F0"
+    },
+    "semantic": {
+      "success": "#00D084",
+      "warning": "#F6AD55",
+      "error": "#E53E3E",
+      "info": "#3182CE"
+    }
+  },
+  "typography": {
+    "fontFamily": "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+    "fontWeights": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    "sizes": {
+      "hero": "2.5rem",
+      "large": "2rem",
+      "medium": "1.25rem",
+      "base": "1rem",
+      "small": "0.875rem",
+      "tiny": "0.75rem"
+    },
+    "lineHeight": {
+      "tight": 1.2,
+      "normal": 1.5,
+      "relaxed": 1.75
+    }
+  },
+  "spacing": {
+    "xs": "0.25rem",
+    "sm": "0.5rem",
+    "md": "1rem",
+    "lg": "1.5rem",
+    "xl": "2rem",
+    "2xl": "3rem",
+    "3xl": "4rem"
+  },
+  "borderRadius": {
+    "small": "4px",
+    "medium": "8px",
+    "large": "12px",
+    "xl": "16px"
+  },
+  "shadows": {
+    "subtle": "0 1px 3px rgba(0, 0, 0, 0.1)",
+    "medium": "0 4px 12px rgba(0, 0, 0, 0.15)",
+    "large": "0 10px 25px rgba(0, 0, 0, 0.2)"
+  },
+  "layout": {
+    "sidebar": {
+      "width": "280px",
+      "backgroundColor": "#FFFFFF",
+      "borderRight": "1px solid #E2E8F0",
+      "padding": "1.5rem 1rem"
+    },
+    "mainContent": {
+      "backgroundColor": "#F7FAFC",
+      "padding": "2rem",
+      "marginLeft": "280px"
+    },
+    "container": {
+      "maxWidth": "1200px",
+      "margin": "0 auto"
+    }
+  },
+  "components": {
+    "navigationSidebar": {
+      "structure": "Vertical list with icons and labels",
+      "sections": ["GENERAL", "SUPPORT"],
+      "itemStructure": {
+        "icon": "Left-aligned icon (16x16px)",
+        "label": "Text label with medium font weight",
+        "activeState": "Dark teal background with white text",
+        "hoverState": "Light gray background"
+      }
+    },
+    "dashboardCard": {
+      "backgroundColor": "#FFFFFF",
+      "borderRadius": "12px",
+      "padding": "1.5rem",
+      "shadow": "0 4px 12px rgba(0, 0, 0, 0.15)",
+      "structure": {
+        "header": "Title with optional subtitle",
+        "content": "Main data/chart area",
+        "actions": "Optional action buttons in top-right"
+      }
+    },
+    "heroCard": {
+      "backgroundColor": "Teal gradient",
+      "color": "#FFFFFF",
+      "borderRadius": "16px",
+      "padding": "2rem",
+      "structure": {
+        "title": "Large white text",
+        "primaryValue": "Very large monetary value",
+        "changeIndicator": "Percentage change with up/down arrow",
+        "actions": "Button group in top-right"
+      }
+    },
+    "metricCard": {
+      "backgroundColor": "#FFFFFF",
+      "borderRadius": "12px",
+      "padding": "1.5rem",
+      "structure": {
+        "icon": "Colored circular icon",
+        "label": "Metric name",
+        "value": "Large monetary value",
+        "change": "Percentage change with color coding",
+        "comparison": "vs. Previous period text"
+      }
+    },
+    "chartContainer": {
+      "backgroundColor": "#FFFFFF",
+      "padding": "1.5rem",
+      "borderRadius": "12px",
+      "structure": {
+        "header": "Chart title with view controls",
+        "chart": "Bar/line chart with teal and green colors",
+        "legend": "Optional legend below chart"
+      }
+    },
+    "dataTable": {
+      "backgroundColor": "#FFFFFF",
+      "borderRadius": "12px",
+      "structure": {
+        "header": "Table title with filter/sort controls",
+        "columns": "TYPE, AMOUNT, STATUS, METHOD",
+        "rows": "Alternating row colors for readability",
+        "statusBadges": "Colored status indicators"
+      }
+    },
+    "buttons": {
+      "primary": {
+        "backgroundColor": "#00D084",
+        "color": "#FFFFFF",
+        "borderRadius": "8px",
+        "padding": "0.75rem 1.5rem",
+        "fontWeight": 600
+      },
+      "secondary": {
+        "backgroundColor": "#FFFFFF",
+        "color": "#2A2D35",
+        "border": "1px solid #E2E8F0",
+        "borderRadius": "8px",
+        "padding": "0.75rem 1.5rem"
+      },
+      "ghost": {
+        "backgroundColor": "transparent",
+        "color": "#2A2D35",
+        "borderRadius": "8px",
+        "padding": "0.75rem 1rem"
+      }
+    }
+  },
+  "dataVisualization": {
+    "colors": {
+      "primary": "#2D9A87",
+      "secondary": "#00D084",
+      "tertiary": "#3DB39F"
+    },
+    "chartTypes": {
+      "barChart": "Vertical bars with rounded tops",
+      "positiveNegative": "Green for positive, teal for negative values"
+    }
+  },
+  "iconography": {
+    "style": "Outline icons, consistent stroke width",
+    "size": "16px for navigation, 20px for cards, 24px for headers",
+    "color": "Inherits from parent or uses theme colors"
+  },
+  "designPrinciples": {
+    "hierarchy": "Clear visual hierarchy with size, color, and spacing",
+    "consistency": "Consistent spacing, colors, and component patterns",
+    "accessibility": "High contrast ratios and readable font sizes",
+    "dataFocus": "Charts and numbers are visually prominent",
+    "whitespace": "Generous use of whitespace for clarity",
+    "modernMinimalism": "Clean, uncluttered interface with subtle shadows"
+  },
+  "responsiveDesign": {
+    "breakpoints": {
+      "mobile": "< 768px",
+      "tablet": "768px - 1024px",
+      "desktop": "> 1024px"
+    },
+    "adaptations": {
+      "mobile": "Collapsed sidebar, stacked cards",
+      "tablet": "Sidebar overlay, adjusted card grid",
+      "desktop": "Full sidebar, multi-column layout"
+    }
+  }
+}
